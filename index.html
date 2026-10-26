@@ -62,6 +62,7 @@ h2{font-size:20px;margin:18px 0 8px}
 .wk{display:flex;gap:6px;align-items:flex-end;height:110px;margin-top:10px}
 .wk div{flex:1;text-align:center;font-size:11px;color:var(--mu);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
 .wk i{display:block;background:var(--ac);border-radius:6px 6px 0 0;min-height:2px}
+.pr{border-top:1px solid var(--ln);padding:12px 0}.pr:first-child{border-top:0;padding-top:0}.ph{display:flex;justify-content:space-between;margin-bottom:8px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.g3 b{display:block;font-size:17px}.g3 span{font-size:12px}
 .nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--ln);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
 .nav button{flex:1;background:none;border:0;color:var(--mu);font-size:21px;padding:2px 0;cursor:pointer;opacity:.7}
 .nav button small{display:block;font-size:10px}
@@ -296,21 +297,20 @@ function vCal(){
 }
 
 /* ---------- pumping ---------- */
+function normPm(){D.pm.forEach(function(x){if(x.l==null&&x.r==null){x.l=x.sd==="R"?0:(x.ml||0);x.r=x.sd==="R"?(x.ml||0):0}x.l=x.l||0;x.r=x.r||0})}
+function pmDay(a){var b=a+864e5,L=0,R=0,c=0;D.pm.forEach(function(x){if(x.t>=a&&x.t<b){c++;L+=x.l;R+=x.r}});return{L:L,R:R,c:c,t:L+R}}
 function vPump(){
-  var t0=day0(Date.now()),d0=t0-pOff*864e5,d1=d0+864e5,L=0,Rr=0,list=[];
-  D.pm.forEach(function(x){if(x.t>=d0&&x.t<d1){list.push(x);if(x.sd==="L")L+=x.ml;else Rr+=x.ml}});
+  var t0=day0(Date.now()),d0=t0-pOff*864e5,d1=d0+864e5,list=[],days=[],mx=1,i;
+  D.pm.forEach(function(x){if(x.t>=d0&&x.t<d1)list.push(x)});
   list.sort(function(a,b){return b.t-a.t});
-  var tot=L+Rr,n=list.length,days=[],mx=1,i;
-  for(i=6;i>=0;i--){var a=t0-i*864e5,s=0;D.pm.forEach(function(x){if(x.t>=a&&x.t<a+864e5)s+=x.ml});days.push([a,s]);if(s>mx)mx=s}
+  var s=pmDay(d0);
+  for(i=6;i>=0;i--){var a=t0-i*864e5,q=pmDay(a);days.push([a,q.t]);if(q.t>mx)mx=q.t}
   var WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
-  var rows=list.map(function(x){return'<div class="rw" style="grid-template-columns:70px 1fr 1fr 40px"><div>'+hm(x.t)+'</div><div><b>'+x.ml+' мл</b></div><div>'+(x.sd==="L"?"Левая":"Правая")+'</div><div><a class="e" onclick="mPm(\''+x.id+'\')">✎</a></div></div>'}).join("");
+  var rows=list.map(function(x){return'<div class="pr"><div class="ph"><b>'+hm(x.t)+'</b><a class="e lk" onclick="mPm(\''+x.id+'\')">✎ изменить</a></div><div class="g3"><div><span class="mu">Левая</span><b style="color:var(--rd)">'+x.l+' мл</b></div><div><span class="mu">Правая</span><b style="color:#4a90e2">'+x.r+' мл</b></div><div><span class="mu">Вместе</span><b>'+(x.l+x.r)+' мл</b></div></div></div>'}).join("");
   return'<h2>Сцеживание</h2>'+
-  '<div class="c"><div class="r2"><input type="datetime-local" id="pt" value="'+li(pOff===0?Date.now():d0+12*36e5)+'"><input type="number" id="pv" inputmode="numeric" placeholder="мл" style="max-width:100px"></div>'+
-  '<div class="ch">'+[40,60,80,100,120].map(function(v){return'<button onclick="$(\'pv\').value='+v+'">'+v+'</button>'}).join("")+'</div>'+
-  '<div class="sd"><button id="sl" class="'+(pSide==="L"?"on":"")+'" onclick="setSide(\'L\')">Левая грудь</button><button id="sr" class="'+(pSide==="R"?"on":"")+'" onclick="setSide(\'R\')">Правая грудь</button></div>'+
-  '<button class="b" style="margin-top:4px" onclick="addP()">Добавить</button></div>'+
+  '<div class="c"><label style="margin-top:0">Время</label><input type="datetime-local" id="pt" value="'+li(pOff===0?Date.now():d0+12*36e5)+'"><div class="r2"><div style="flex:1"><label>Левая грудь, мл</label><input type="number" id="pl" inputmode="numeric" placeholder="0"></div><div style="flex:1"><label>Правая грудь, мл</label><input type="number" id="pq" inputmode="numeric" placeholder="0"></div></div><button class="b" onclick="addP()">Добавить</button></div>'+
   '<div class="nv"><button onclick="pOff++;render()">‹</button><h2>'+dayName(d0,pOff)+'</h2><button onclick="pOff=Math.max(0,pOff-1);render()">›</button></div>'+
-  '<div class="c"><div class="g2" style="gap:14px"><div><div class="mu">Левая грудь</div><div class="big" style="color:var(--rd)">'+L+' мл</div></div><div><div class="mu">Правая грудь</div><div class="big" style="color:#4a90e2">'+Rr+' мл</div></div><div><div class="mu">Сцеживаний</div><div class="big">'+n+'</div></div><div><div class="mu">В среднем за раз</div><div class="big">'+(n?Math.round(tot/n):0)+' мл</div></div></div><div class="mu" style="margin-top:10px">Общий объём за сутки: <b style="color:var(--tx)">'+tot+' мл</b></div></div>'+
+  '<div class="c"><div class="g2" style="gap:14px"><div><div class="mu">Левая грудь</div><div class="big" style="color:var(--rd)">'+s.L+' мл</div></div><div><div class="mu">Правая грудь</div><div class="big" style="color:#4a90e2">'+s.R+' мл</div></div><div><div class="mu">Сцеживаний</div><div class="big">'+s.c+'</div></div><div><div class="mu">В среднем за раз</div><div class="big">'+(s.c?Math.round(s.t/s.c):0)+' мл</div></div></div><div class="mu" style="margin-top:10px">Общий объём за сутки: <b style="color:var(--tx)">'+s.t+' мл</b></div></div>'+
   '<div class="c">'+(rows||'<div class="mu">В этот день записей нет</div>')+'</div>'+
   '<h2>За неделю</h2><div class="c"><div class="wk">'+days.map(function(d){return'<div>'+(d[1]?d[1]:"")+'<i style="height:'+Math.round(d[1]/mx*80)+'px"></i>'+WD[new Date(d[0]).getDay()]+'</div>'}).join("")+'</div></div>'+pumpDays(t0);
 }
@@ -319,26 +319,24 @@ function pumpDays(t0){
   if(fs===null)return"";
   var n=Math.min(60,Math.round((t0-day0(fs))/864e5)+1),h='<h2>По дням</h2><div class="mu" style="margin-bottom:8px">Сутки с 00:00 до 00:00. Нажмите на день, чтобы открыть записи.</div>';
   for(var k=0;k<n;k++){
-    var a=t0-k*864e5,b=a+864e5,L=0,Rt=0,c=0;
-    D.pm.forEach(function(x){if(x.t>=a&&x.t<b){c++;if(x.sd==="L")L+=x.ml;else Rt+=x.ml}});
-    h+='<div class="c cd" onclick="pOff='+k+';render();window.scrollTo(0,0)"><div class="t">'+dayName(a,k)+(k<2?", "+dmy(a):"")+'</div><div class="day"><span>Всего за сутки <b>'+(L+Rt)+' мл</b></span><span>Сцеживаний <b>'+c+'</b></span></div><div class="day" style="margin-top:4px"><span>Левая <b>'+L+' мл</b></span><span>Правая <b>'+Rt+' мл</b></span></div></div>';
+    var a=t0-k*864e5,q=pmDay(a);
+    h+='<div class="c cd" onclick="pOff='+k+';render();window.scrollTo(0,0)"><div class="t">'+dayName(a,k)+(k<2?", "+dmy(a):"")+'</div><div class="day"><span>Всего за сутки <b>'+q.t+' мл</b></span><span>Сцеживаний <b>'+q.c+'</b></span></div><div class="day" style="margin-top:4px"><span>Левая <b>'+q.L+' мл</b></span><span>Правая <b>'+q.R+' мл</b></span></div></div>';
   }
   return h;
 }
-function setSide(s){pSide=s;$("sl").className=s==="L"?"on":"";$("sr").className=s==="R"?"on":""}
 function addP(){
-  var t=$("pt").value?new Date($("pt").value).getTime():null,v=parseInt($("pv").value,10);
-  if(!t||!(v>0)){alert("Укажите время и объём в мл");return}
-  D.pm.push({id:uid(),t:t,ml:v,sd:pSide});save();render();
+  var t=$("pt").value?new Date($("pt").value).getTime():null,l=parseInt($("pl").value,10)||0,r=parseInt($("pq").value,10)||0;
+  if(!t||l+r<=0){alert("Укажите время и объём хотя бы для одной груди");return}
+  D.pm.push({id:uid(),t:t,l:l,r:r});save();render();
 }
 function mPm(id){
   var x=null;D.pm.forEach(function(y){if(y.id===id)x=y});if(!x)return;
-  modal('<h3>Изменить запись</h3><label>Время</label><input type="datetime-local" id="qt" value="'+li(x.t)+'"><label>Объём, мл</label><input type="number" id="qv" inputmode="numeric" value="'+x.ml+'"><label>Грудь</label><select id="qs"><option value="L"'+(x.sd==="L"?" selected":"")+'>Левая</option><option value="R"'+(x.sd==="R"?" selected":"")+'>Правая</option></select><button class="b" onclick="sPm(\''+id+'\')">Сохранить</button><button class="b d" onclick="dPm(\''+id+'\')">Удалить</button><button class="b s" onclick="closeM()">Отмена</button>');
+  modal('<h3>Изменить сцеживание</h3><label>Время</label><input type="datetime-local" id="qt" value="'+li(x.t)+'"><div class="r2"><div style="flex:1"><label>Левая, мл</label><input type="number" id="ql" inputmode="numeric" value="'+x.l+'"></div><div style="flex:1"><label>Правая, мл</label><input type="number" id="qr" inputmode="numeric" value="'+x.r+'"></div></div><button class="b" onclick="sPm(\''+id+'\')">Сохранить</button><button class="b d" onclick="dPm(\''+id+'\')">Удалить</button><button class="b s" onclick="closeM()">Отмена</button>');
 }
 function sPm(id){
-  var t=$("qt").value?new Date($("qt").value).getTime():null,v=parseInt($("qv").value,10);
-  if(!t||!(v>0)){alert("Укажите время и объём");return}
-  D.pm.forEach(function(y){if(y.id===id){y.t=t;y.ml=v;y.sd=$("qs").value}});save();closeM();render();
+  var t=$("qt").value?new Date($("qt").value).getTime():null,l=parseInt($("ql").value,10)||0,r=parseInt($("qr").value,10)||0;
+  if(!t||l+r<=0){alert("Укажите время и объём");return}
+  D.pm.forEach(function(y){if(y.id===id){y.t=t;y.l=l;y.r=r}});save();closeM();render();
 }
 function dPm(id){if(!confirm("Удалить запись?"))return;D.pm=D.pm.filter(function(y){return y.id!==id});save();closeM();render()}
 
@@ -384,7 +382,7 @@ function bkOut(){
 function bkIn(){
   try{var o=JSON.parse($("bk").value);if(!o||!Array.isArray(o.ev))throw 0;
     if(!confirm("Заменить текущие данные загруженными?"))return;
-    D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],notif:false},o);save();closeM();render();
+    D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],notif:false},o);normPm();save();closeM();render();
   }catch(e){alert("Не удалось прочитать код данных")}
 }
 
@@ -408,7 +406,7 @@ function checkAlerts(){
 }
 
 /* ---------- start ---------- */
-load();render();
+load();normPm();render();
 setInterval(tick,1000);setInterval(checkAlerts,5000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden){render();checkAlerts()}});
 try{if("serviceWorker" in navigator&&location.protocol!=="file:")navigator.serviceWorker.register("sw.js")}catch(e){}
