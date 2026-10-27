@@ -118,10 +118,12 @@ function load(){
       save()}
   }catch(e){warn="Хранилище недоступно — данные не сохранятся. Откройте сайт в обычном (не приватном) окне Safari."}
 }
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(D));if(warn.indexOf("Не удаётся")===0)warn=""}
   catch(e){warn="Не удаётся сохранить данные. Отключите приватный режим или освободите память телефона."}
   banner();
+  if(D.sync&&D.sync.code){clearTimeout(SY.t);SY.t=setTimeout(syncPush,500)}
 }
 function banner(){var w=$("wn");w.hidden=!warn;w.textContent=warn}
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
@@ -166,7 +168,7 @@ function tlHtml(d0){
 
 /* ---------- header & nav ---------- */
 function head(){
-  $("hd").innerHTML='<div class="av">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div><div><h1></h1><div class="mu">'+ageTxt()+'</div></div><button class="gear" onclick="mSet()" aria-label="Настройки">⚙️</button>';
+  $("hd").innerHTML='<div class="av">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div><div><h1></h1><div class="mu">'+ageTxt()+'</div></div>'+(D.sync&&D.sync.code?'<span style="margin-left:auto;font-size:18px" title="Синхронизация">'+(SY.st==="ok"?"☁️":"⏳")+'</span>':'')+'<button class="gear" style="margin-left:'+(D.sync&&D.sync.code?'6px':'auto')+'" onclick="mSet()" aria-label="Настройки">⚙️</button>';
   $("hd").getElementsByTagName("h1")[0].textContent=D.name||"Ваш малыш";
 }
 var TABS=[["stat","📊","Итоги"],["norm","🌙","Режим"],["cal","📅","Дни"],["log","📋","Журнал"],["pump","🍼","Молоко"],["home","🏠","Главная"]];
@@ -353,7 +355,7 @@ function mSet(){
   '<label>Сколько малышу сейчас</label><div class="r2"><input type="text" id="sa" inputmode="decimal" placeholder="например, 1,5"><select id="su" style="max-width:100px"><option value="m">мес.</option><option value="w">нед.</option><option value="y">лет</option></select></div>'+
   '<label>Или дата рождения</label><input type="date" id="sb" value="'+bd+'">'+
   '<label style="display:flex;gap:10px;align-items:center;color:var(--tx)"><input type="checkbox" id="sno" style="width:24px;height:24px"'+(D.notif?" checked":"")+'>Напоминать, когда пора спать (пока приложение открыто)</label>'+
-  '<button class="b" onclick="saveSet()">Сохранить</button>'+
+  '<button class="b" onclick="saveSet()">Сохранить</button>'+syncUI()+
   '<label style="margin-top:18px">Резервная копия данных</label><textarea id="bk" placeholder="Здесь появится код данных или вставьте его для загрузки"></textarea>'+
   '<button class="b s" onclick="shareBk()">📤 Сохранить копию (в Заметки, iCloud…)</button><div class="r2"><button class="b s" onclick="dlBk()">Скачать файл</button><button class="b s" onclick="$(\'bf\').click()">Из файла</button></div><div class="r2"><button class="b s" onclick="bkOut()">Скопировать код</button><button class="b s" onclick="bkIn()">Загрузить из кода</button></div><input type="file" id="bf" accept=".json,application/json" hidden><div class="mu" id="sp" style="margin-top:8px"></div>'+
   '<button class="b s" onclick="closeM()">Закрыть</button>');
@@ -379,14 +381,127 @@ function saveSet(){
   save();closeM();render();
 }
 function bkOut(){
-  var t=JSON.stringify(D);$("bk").value=t;
+  var t=exp();$("bk").value=t;
   try{navigator.clipboard.writeText(t).then(function(){alert("Скопировано. Вставьте код в заметки или сообщение, чтобы сохранить копию.")},function(){$("bk").select()})}catch(e){$("bk").select()}
 }
 function bkIn(){
   try{var o=JSON.parse($("bk").value);if(!o||!Array.isArray(o.ev))throw 0;
     if(!confirm("Заменить текущие данные загруженными?"))return;
-    D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],notif:false},o);normPm();save();closeM();render();
+    var sy=D.sync;D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],notif:false},o);D.sync=sy;normPm();save();closeM();render();
   }catch(e){alert("Не удалось прочитать код данных")}
+}
+
+/* ---------- cloud sync (Firebase Firestore) ---------- */
+var FBC={apiKey:"AIzaSyCqyNV-1YjpFsx_wDC9Tz5CkeTAQu98Rsk",authDomain:"sleep-5abf6.firebaseapp.com",projectId:"sleep-5abf6",storageBucket:"sleep-5abf6.firebasestorage.app",messagingSenderId:"98505357629",appId:"1:98505357629:web:a659341d3680c0ecd2ed54"};
+var SY={db:null,unsub:[],known:{ev:{},pm:{}},km:"",inflight:{},t:null,st:"off",ready:false};
+function rd(k,x){return k==="ev"?{s:x.s,e:x.e==null?null:x.e,p:x.p||"Кроватка"}:{t:x.t,l:x.l||0,r:x.r||0}}
+function rj(k,x){return JSON.stringify(rd(k,x))}
+function fromDoc(k,d){var o=d.data(),r=rd(k,o);r.id=d.id;return r}
+function genCode(){var a="abcdefghjkmnpqrstuvwxyz23456789",b=new Uint8Array(16),s="",i;crypto.getRandomValues(b);for(i=0;i<16;i++){s+=a[b[i]%a.length];if(i%4===3&&i<15)s+="-"}return s}
+function stTxt(){return SY.st==="ok"?"Синхронизировано ✓":SY.st==="conn"?"Подключаюсь…":"Нет связи. Данные сохранены на телефоне и отправятся позже."}
+function loadFb(cb){
+  if(SY.db){cb(true);return}
+  function init(){try{if(!firebase.apps.length)firebase.initializeApp(FBC);SY.db=firebase.firestore();try{SY.db.enablePersistence({synchronizeTabs:true}).catch(function(){})}catch(e){}cb(true)}catch(e){cb(false)}}
+  if(typeof firebase!=="undefined"&&firebase.firestore){init();return}
+  function ld(u,f){var sc=document.createElement("script");sc.src=u;sc.onload=f;sc.onerror=function(){cb(false)};document.head.appendChild(sc)}
+  ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",function(){ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js",init)});
+}
+function base(){return SY.db.collection("families").doc(D.sync.code)}
+function metaJ(){return JSON.stringify({name:D.name||"",birth:D.birth||null,photo:D.photo||null})}
+function syncPush(){
+  if(!SY.ready||!D.sync||!D.sync.code)return;
+  var b=base();
+  ["ev","pm"].forEach(function(k){
+    var seen={};
+    D[k].forEach(function(x){seen[x.id]=1;var j=rj(k,x);if(SY.known[k][x.id]!==j&&SY.inflight[k+x.id]!==j){SY.inflight[k+x.id]=j;b.collection(k).doc(x.id).set(rd(k,x)).catch(function(){delete SY.inflight[k+x.id]})}});
+    Object.keys(SY.known[k]).forEach(function(id){if(!seen[id]&&SY.inflight[k+id]!=="del"){SY.inflight[k+id]="del";b.collection(k).doc(id).delete().catch(function(){delete SY.inflight[k+id]})}});
+  });
+  var m=metaJ();
+  if(m!==SY.km&&SY.inflight.m!==m){SY.inflight.m=m;b.collection("meta").doc("profile").set({name:D.name||"",birth:D.birth||null,photo:D.photo||null}).catch(function(){delete SY.inflight.m})}
+}
+function applyChange(k,c){
+  var d=c.doc,id=d.id,pend=d.metadata.hasPendingWrites;
+  if(c.type==="removed"){var n=D[k].length;D[k]=D[k].filter(function(x){return x.id!==id});delete SY.known[k][id];delete SY.inflight[k+id];return D[k].length!==n}
+  var rec=fromDoc(k,d),j=rj(k,rec),ch=false,found=false;
+  D[k].forEach(function(x,i){if(x.id===id){found=true;if(rj(k,x)!==j){D[k][i]=rec;ch=true}}});
+  if(!found){D[k].push(rec);ch=true}
+  if(!pend){SY.known[k][id]=j;delete SY.inflight[k+id]}
+  return ch;
+}
+function syncStop(){SY.unsub.forEach(function(f){try{f()}catch(e){}});SY.unsub=[];SY.ready=false}
+function syncStart(){
+  if(!D.sync||!D.sync.code)return;
+  SY.st="conn";head();
+  loadFb(function(ok){
+    if(!ok){SY.st="off";head();return}
+    syncStop();SY.known={ev:{},pm:{}};SY.km="";SY.inflight={};
+    var first={ev:true,pm:true,m:true},b=base();
+    function done(ch){
+      persist();
+      if(!first.ev&&!first.pm&&!first.m&&!SY.ready){SY.ready=true;SY.st="ok";ch=true}
+      if(ch&&$("ov").hidden)render();else head();
+      if(SY.ready)syncPush();
+    }
+    ["ev","pm"].forEach(function(k){
+      SY.unsub.push(b.collection(k).onSnapshot({includeMetadataChanges:true},function(snap){
+        var ch=false;
+        if(first[k]){
+          D[k]=snap.docs.map(function(d){var r=fromDoc(k,d);if(!d.metadata.hasPendingWrites)SY.known[k][d.id]=rj(k,r);return r});
+          first[k]=false;ch=true;
+        }else snap.docChanges({includeMetadataChanges:true}).forEach(function(c){if(applyChange(k,c))ch=true});
+        if(k==="pm")normPm();
+        done(ch);
+      },function(){SY.st="off";head()}));
+    });
+    SY.unsub.push(b.collection("meta").doc("profile").onSnapshot({includeMetadataChanges:true},function(d){
+      var ch=false;
+      if(d.exists){
+        var o=d.data(),j=JSON.stringify({name:o.name||"",birth:o.birth||null,photo:o.photo||null});
+        if(j!==metaJ()&&(first.m||!d.metadata.hasPendingWrites)){D.name=o.name||"";D.birth=o.birth||null;D.photo=o.photo||null;ch=true}
+        if(!d.metadata.hasPendingWrites){SY.km=j;delete SY.inflight.m}
+      }
+      first.m=false;done(ch);
+    },function(){SY.st="off";head()}));
+  });
+}
+function syncCreate(){
+  if(!confirm("Создать код семьи и загрузить данные ЭТОГО телефона в облако? Создавайте код на телефоне, где уже есть все записи."))return;
+  var bt=$("scb");if(bt)bt.textContent="Загружаю…";
+  loadFb(function(ok){
+    if(!ok){alert("Нет интернета или не удалось подключиться к серверу. Попробуйте позже.");if(bt)bt.textContent="☁️ Создать код семьи (с этого телефона)";return}
+    var code=genCode(),root=SY.db.collection("families").doc(code),ops=[];
+    ops.push([root.collection("meta").doc("profile"),{name:D.name||"",birth:D.birth||null,photo:D.photo||null}]);
+    ["ev","pm"].forEach(function(k){D[k].forEach(function(x){ops.push([root.collection(k).doc(x.id),rd(k,x)])})});
+    var ps=[],i;
+    for(i=0;i<ops.length;i+=400){var bt2=SY.db.batch();ops.slice(i,i+400).forEach(function(o){bt2.set(o[0],o[1])});ps.push(bt2.commit())}
+    Promise.all(ps).then(function(){D.sync={code:code};persist();syncStart();render();mSet()}).catch(function(e){alert("Не удалось загрузить данные: "+(e&&e.message||e));mSet()});
+  });
+}
+function syncJoin(code){
+  code=(code||"").trim().toLowerCase();
+  if(!/^[a-z0-9-]{12,}$/.test(code)){alert("Введите код целиком, как его прислали");return}
+  loadFb(function(ok){
+    if(!ok){alert("Нет интернета или не удалось подключиться к серверу.");return}
+    SY.db.collection("families").doc(code).collection("meta").doc("profile").get().then(function(d){
+      if(!d.exists){alert("Такой код не найден. Проверьте, что вводите его точно.");return}
+      if(!confirm("Все данные на этом телефоне будут ЗАМЕНЕНЫ данными из облака. Продолжить?"))return;
+      syncStop();D.ev=[];D.pm=[];D.sync={code:code};persist();syncStart();closeM();render();
+    }).catch(function(e){alert("Не удалось проверить код: "+(e&&e.message||e))});
+  });
+}
+function syncOff(){
+  if(!confirm("Отключить синхронизацию на этом телефоне? Записи останутся на телефоне, но перестанут обновляться."))return;
+  syncStop();D.sync=null;SY.st="off";persist();render();mSet();
+}
+function shareCode(){
+  var c=D.sync&&D.sync.code;if(!c)return;
+  if(navigator.share){navigator.share({title:"Код семьи",text:c}).catch(function(){})}
+  else{try{navigator.clipboard.writeText(c).then(function(){alert("Код скопирован")})}catch(e){}}
+}
+function syncUI(){
+  var c=D.sync&&D.sync.code;
+  if(!c)return'<label style="margin-top:18px">Синхронизация между телефонами</label><div class="mu" style="margin-bottom:6px">Записи будут видны на обоих телефонах и не пропадут, если телефон очистит данные.</div><button class="b s" id="scb" style="margin-top:6px" onclick="syncCreate()">☁️ Создать код семьи (с этого телефона)</button><label>Или введите код, который прислали</label><input type="text" id="sjc" placeholder="xxxx-xxxx-xxxx-xxxx" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="b s" onclick="syncJoin($(\'sjc\').value)">У меня уже есть код</button>';
+  return'<label style="margin-top:18px">Синхронизация</label><div style="border:1px solid var(--ln);border-radius:14px;padding:12px"><div class="mu">Код семьи (никому не показывайте)</div><div style="font-size:18px;font-weight:700;letter-spacing:1px;word-break:break-all;margin:4px 0">'+c+'</div><div class="mu">'+stTxt()+'</div></div><button class="b s" onclick="shareCode()">📤 Отправить код</button><button class="b s" onclick="syncOff()">Отключить синхронизацию</button>';
 }
 
 /* ---------- white noise ---------- */
@@ -451,14 +566,15 @@ function bkBanner(){
   if(d!==null&&d<3)return"";
   return'<div class="c" style="border:2px solid var(--wr)"><b>Сохраните копию данных</b><div class="mu" style="margin:4px 0 10px">'+(d===null?"Копия ещё не делалась.":"Последняя копия: "+d+" дн. назад.")+' Если телефон очистит память, записи можно будет восстановить.</div><button class="b" style="margin-top:0" onclick="shareBk()">Сохранить копию</button></div>';
 }
+function exp(){var o=JSON.parse(JSON.stringify(D));delete o.sync;return JSON.stringify(o)}
 function shareBk(){
-  var t=JSON.stringify(D);
+  var t=exp();
   function done(){D.bk=Date.now();save();render()}
   if(navigator.share){navigator.share({title:"Сон малыша — копия данных",text:t}).then(done).catch(function(){})}
   else{try{navigator.clipboard.writeText(t).then(function(){alert("Копия скопирована. Вставьте её в заметки или сообщение себе.");done()})}catch(e){alert("Не удалось сохранить копию. Откройте ⚙️ и нажмите «Скопировать».")}}
 }
 function dlBk(){
-  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:"application/json"}));a.download="sleep-backup.json";document.body.appendChild(a);a.click();a.remove();D.bk=Date.now();save()}catch(e){alert("Не удалось создать файл. Используйте «Сохранить копию».")}
+  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exp()],{type:"application/json"}));a.download="sleep-backup.json";document.body.appendChild(a);a.click();a.remove();D.bk=Date.now();save()}catch(e){alert("Не удалось создать файл. Используйте «Сохранить копию».")}
 }
 
 /* ---------- reminders ---------- */
@@ -481,7 +597,7 @@ function checkAlerts(){
 }
 
 /* ---------- start ---------- */
-load();normPm();render();
+load();normPm();render();if(D.sync&&D.sync.code)syncStart();
 setInterval(tick,1000);setInterval(checkAlerts,5000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden){render();checkAlerts()}});
 try{if("serviceWorker" in navigator&&location.protocol!=="file:")navigator.serviceWorker.register("sw.js")}catch(e){}
