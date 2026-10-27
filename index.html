@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Сон малыша</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#7c5cf0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Сон малыша">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#fbf3ff;--cd:#fff;--tx:#34436b;--mu:#8b93ad;--ac:#7c5cf0;--ac2:#e9e2ff;--ok:#2fb98a;--wr:#f0a43c;--rd:#ef7b8c;--ln:#ece6f7;--sh:0 4px 16px rgba(80,60,140,.08)}
+@media(prefers-color-scheme:dark){:root{--bg:#14111f;--cd:#1f1b30;--tx:#efeaff;--mu:#9a94b8;--ac:#9a82ff;--ac2:#3a3066;--ln:#2d2848;--sh:none}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:env(safe-area-inset-top,0px) 0 calc(76px + env(safe-area-inset-bottom,0px));-webkit-tap-highlight-color:transparent}
+.w{max-width:480px;margin:0 auto;padding:12px 16px}
+.hd{display:flex;align-items:center;gap:12px}
+.av{width:52px;height:52px;border-radius:14px;background:var(--ac2);display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.hd h1{font-size:20px;margin:0}
+.mu{color:var(--mu);font-size:13px}
+.gear{margin-left:auto;background:none;border:0;font-size:24px;color:var(--tx);cursor:pointer}
+.c{background:var(--cd);border-radius:16px;padding:14px 16px;margin:12px 0;box-shadow:var(--sh)}
+h2{font-size:20px;margin:18px 0 8px}
+.tm{display:flex;justify-content:center;gap:12px;font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:14px}
+.tm div{text-align:center}.tm small{display:block;font-size:12px;font-weight:400;color:var(--mu)}
+.rb{display:block;margin:18px auto 4px;width:78px;height:78px;border-radius:50%;border:0;background:var(--rd);color:#fff;font-size:28px;cursor:pointer}
+.rb.go{background:var(--ac)}
+.cap{text-align:center;font-size:13px;color:var(--mu)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g2 .c{margin:0}
+.rw{display:grid;grid-template-columns:76px 66px 1fr 54px;gap:6px;padding:12px 0;border-top:1px solid var(--ln);font-size:14px;align-items:start}
+.rw:first-child{border-top:0}
+.rw a,.lk{color:var(--ac);cursor:pointer;text-decoration:underline;font-size:14px}
+.rw .e{font-size:20px;text-decoration:none;text-align:center}
+.stp{background:var(--rd);color:#fff;border:0;border-radius:50%;width:42px;height:42px;cursor:pointer}
+.nv{display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px}
+.nv h2{margin:0}.nv button{background:var(--ac2);color:var(--tx);border:0;border-radius:12px;width:38px;height:38px;font-size:20px;cursor:pointer}
+.tb{width:100%;border-collapse:collapse;font-size:14px}
+.tb th{font-weight:400;color:var(--mu);text-align:left;padding:6px 4px;font-size:13px}
+.tb td{padding:8px 4px;border-top:1px dashed var(--ln)}
+.tl{position:relative;height:56px;background:var(--ln);border-radius:12px;overflow:hidden;margin-top:8px}
+.tl i{position:absolute;top:0;bottom:0}
+.ax{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-top:3px}
+.ln{display:flex;justify-content:space-between;padding:3px 0;font-size:14px}
+.ln.b{font-weight:700}
+.tips{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.tip{flex:none;width:150px;min-height:110px;border-radius:16px;padding:14px;font-weight:700;font-size:15px;background:#bcdcfa;color:#34436b}
+.tip:nth-child(2){background:#f8d4e4}.tip:nth-child(3){background:#d2f0df}
+.day{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--mu)}
+.day b{color:var(--tx)}
+.cd{cursor:pointer}.cd .t{font-weight:700;margin-bottom:6px}
+.big{font-size:30px;font-weight:700}
+.sd{display:flex;gap:8px;margin:8px 0}
+.sd button,.ch button{flex:1;padding:12px;border-radius:12px;border:2px solid var(--ln);background:var(--cd);color:var(--tx);font-size:15px;font-weight:600;cursor:pointer}
+.sd button.on{border-color:var(--ac);background:var(--ac2)}
+.ch{display:flex;gap:6px;margin:8px 0}.ch button{padding:8px;font-size:13px}.ch button.on{border-color:var(--ac);background:var(--ac2)}
+.wk{display:flex;gap:6px;align-items:flex-end;height:110px;margin-top:10px}
+.wk div{flex:1;text-align:center;font-size:11px;color:var(--mu);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.wk i{display:block;background:var(--ac);border-radius:6px 6px 0 0;min-height:2px}
+.pr{border-top:1px solid var(--ln);padding:12px 0}.pr:first-child{border-top:0;padding-top:0}.ph{display:flex;justify-content:space-between;margin-bottom:8px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.g3 b{display:block;font-size:17px}.g3 span{font-size:12px}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--ln);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+.nav button{flex:1;background:none;border:0;color:var(--mu);font-size:21px;padding:2px 0;cursor:pointer;opacity:.7}
+.nav button small{display:block;font-size:10px}
+.nav button.on{color:var(--ac);opacity:1;font-weight:700}
+.ov{position:fixed;inset:0;background:rgba(20,15,40,.55);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.ov[hidden]{display:none}
+.md{background:var(--cd);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow:auto}
+.md h3{margin:0 0 12px;font-size:18px}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+input,select,textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:12px;padding:11px 12px;font-size:16px;font-family:inherit}
+textarea{height:90px}
+.r2{display:flex;gap:8px}
+.b{display:block;width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:600;background:var(--ac);color:#fff;margin-top:12px;cursor:pointer}
+.b.s{background:var(--ac2);color:var(--tx)}.b.d{background:var(--rd)}
+#wn{background:#ef7b8c;color:#fff;padding:10px 14px;font-size:13px;text-align:center}
+.toast{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:20;background:var(--ac);color:#fff;border-radius:16px;padding:14px 16px;font-weight:600}
+.toast span{display:block;font-weight:400;font-size:13px;margin-top:3px}
+</style>
+</head>
+<body>
+<div id="wn" hidden></div>
+<div class="toast" id="ts" hidden></div>
+<div class="w">
+  <div class="hd" id="hd"></div>
+  <div id="v"></div>
+</div>
+<div class="nav" id="nv"></div>
+<div class="ov" id="ov" hidden><div class="md" id="md"></div></div>
+
+<script>
+var KEY="babysleep.v2",D={name:"",birth:null,photo:null,ev:[],pm:[],notif:false},tab="home",dayOff=0,pOff=0,pSide="L",warn="",AL=null;
+function $(i){return document.getElementById(i)}
+function two(n){return(n<10?"0":"")+n}
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
+function hm(t){var d=new Date(t);return two(d.getHours())+":"+two(d.getMinutes())}
+function day0(t){var d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
+function dmy(t){var d=new Date(t);return two(d.getDate())+"."+two(d.getMonth()+1)+"."+d.getFullYear()}
+function dur(ms){var m=Math.max(0,Math.round(ms/6e4));return two(Math.floor(m/60))+" ч "+two(m%60)+" мин"}
+function dur2(m){m=Math.round(m);return m>=60?Math.floor(m/60)+" ч"+(m%60?" "+m%60+" мин":""):m+" мин"}
+function li(t){var d=new Date(t);return d.getFullYear()+"-"+two(d.getMonth()+1)+"-"+two(d.getDate())+"T"+two(d.getHours())+":"+two(d.getMinutes())}
+function isNight(t){var h=new Date(t).getHours();return h>=19||h<6}
+function dayName(d0,off){return off===0?"Сегодня":off===1?"Вчера":dmy(d0)}
+
+/* ---------- storage ---------- */
+function load(){
+  try{
+    var r=localStorage.getItem(KEY);
+    if(r){D=Object.assign(D,JSON.parse(r));return}
+    var o=localStorage.getItem("babysleep.v1");
+    if(o){o=JSON.parse(o);D.name=o.name||"";D.photo=o.photo||null;D.birth=o.birth||null;
+      (o.logs||[]).forEach(function(l){D.ev.push({id:uid(),s:l.s,e:l.e,p:"Кроватка"})});
+      if(o.sleeping)D.ev.push({id:uid(),s:o.sleeping,e:null,p:"Кроватка"});
+      save()}
+  }catch(e){warn="Хранилище недоступно — данные не сохранятся. Откройте сайт в обычном (не приватном) окне Safari."}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(D));if(warn.indexOf("Не удаётся")===0)warn=""}
+  catch(e){warn="Не удаётся сохранить данные. Отключите приватный режим или освободите память телефона."}
+  banner();
+}
+function banner(){var w=$("wn");w.hidden=!warn;w.textContent=warn}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+
+/* ---------- age & norms ---------- */
+function ageM(){return D.birth?Math.max(0,(Date.now()-D.birth)/(30.4375*864e5)):2}
+function ageTxt(){
+  if(!D.birth)return "Укажите возраст в настройках";
+  var d=Math.max(0,Math.floor((Date.now()-D.birth)/864e5)),m=Math.floor(d/30.4375),r=Math.floor(d-m*30.4375);
+  if(m<1)return d+" дн.";
+  if(m<24)return m+" мес. "+r+" дн.";
+  return Math.floor(m/12)+" г. "+(m%12)+" мес.";
+}
+var RT=[[3,[14,17],[6,8],[8,11],[4,5],45,90],[6,[12,16],[3,5],[9,11],[3,4],90,150],[9,[12,15],[2,4],[10,12],[2,3],120,180],[12,[12,15],[2,3],[10,12],[2,3],150,210],[24,[11,14],[2,3],[10,12],[1,2],180,300],[999,[10,13],[0,2],[10,12],[0,1],240,360]];
+function rec(){var m=ageM();for(var i=0;i<RT.length;i++)if(m<RT[i][0])return RT[i];return RT[5]}
+function rg(a){return a[0]+"–"+a[1]+" ч"}
+
+/* ---------- data helpers ---------- */
+function active(){for(var i=0;i<D.ev.length;i++)if(D.ev[i].e==null)return D.ev[i];return null}
+function sorted(){return D.ev.slice().sort(function(a,b){return a.s-b.s})}
+function lastEnd(){var l=null;D.ev.forEach(function(x){if(x.e!=null&&(l===null||x.e>l))l=x.e});return l}
+function ds(d0){
+  var d1=d0+864e5,now=Date.now(),sl=0,dy=0,ni=0,nap=0,ts=null;
+  D.ev.forEach(function(x){
+    var e=x.e==null?now:x.e;if(ts===null||x.s<ts)ts=x.s;
+    var a=Math.max(x.s,d0),b=Math.min(e,d1);
+    if(b>a){sl+=b-a;if(isNight(x.s))ni+=b-a;else dy+=b-a}
+    if(!isNight(x.s)&&x.s>=d0&&x.s<d1)nap++;
+  });
+  var as=ts===null?null:Math.max(d0,ts),ae=Math.min(d1,now),aw=(as!==null&&ae>as)?ae-as-sl:0;
+  return{sl:sl,dy:dy,ni:ni,nap:nap,aw:Math.max(0,aw)};
+}
+function tlHtml(d0){
+  var d1=d0+864e5,now=Date.now(),h="",ts=null;
+  D.ev.forEach(function(x){if(ts===null||x.s<ts)ts=x.s});
+  function pc(t){return(t-d0)/864e5*100}
+  if(ts!==null){var as=Math.max(d0,ts),ae=Math.min(d1,now);if(ae>as)h+='<i style="left:'+pc(as)+'%;width:'+(pc(ae)-pc(as))+'%;background:var(--ok);opacity:.55"></i>'}
+  D.ev.forEach(function(x){var e=x.e==null?now:x.e,a=Math.max(x.s,d0),b=Math.min(e,d1);if(b>a)h+='<i style="left:'+pc(a)+'%;width:'+Math.max(.4,pc(b)-pc(a))+'%;background:var(--ac)"></i>'});
+  if(now>=d0&&now<d1)h+='<i style="left:'+pc(now)+'%;width:2px;background:var(--tx)"></i>';
+  return'<div class="tl">'+h+'</div><div class="ax"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>';
+}
+
+/* ---------- header & nav ---------- */
+function head(){
+  $("hd").innerHTML='<div class="av">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div><div><h1></h1><div class="mu">'+ageTxt()+'</div></div><button class="gear" onclick="mSet()" aria-label="Настройки">⚙️</button>';
+  $("hd").getElementsByTagName("h1")[0].textContent=D.name||"Ваш малыш";
+}
+var TABS=[["stat","📊","Итоги"],["norm","🌙","Режим"],["cal","📅","Дни"],["log","📋","Журнал"],["pump","🍼","Молоко"],["home","🏠","Главная"]];
+function nav(){$("nv").innerHTML=TABS.map(function(t){return'<button class="'+(tab===t[0]?"on":"")+'" onclick="go(\''+t[0]+'\')">'+t[1]+'<small>'+t[2]+'</small></button>'}).join("")}
+function go(t){tab=t;render();window.scrollTo(0,0)}
+function render(){
+  head();nav();banner();
+  var f={home:vHome,log:vLog,norm:vNorm,stat:vStat,cal:vCal,pump:vPump}[tab];
+  $("v").innerHTML=f();
+  if(tab==="home")tick();
+}
+
+/* ---------- home ---------- */
+function vHome(){
+  var a=active(),ev=sorted(),l=ev.length?ev[ev.length-1]:null,st=a?a.s:(l?l.e:null);
+  var tips=[["Окно бодрствования","Следите за временем между снами"],["Ритм дня","Сон по режиму — спокойнее вечер"],["Сцеживание","Записывайте объём во вкладке «Молоко»"]];
+  return bkBanner()+'<div class="c" id="hint"></div>'+
+  '<div class="mu" style="margin:14px 0 6px">Сейчас: <b style="color:var(--tx);font-size:16px" id="cur"></b></div>'+
+  '<div class="mu">'+(a?"Уснул":"Проснулся")+': <b style="color:var(--tx);font-size:16px">'+(st?hm(st):"—")+'</b> '+(l||a?'<a class="lk" onclick="mEv(\''+(a?a.id:l.id)+'\')">изменить</a>':"")+'</div>'+
+  '<div class="tm" id="tm"></div>'+
+  '<button class="rb" id="rb" onclick="tgl()"></button><div class="cap" id="rc"></div>'+
+  '<h2>Советы на каждый день</h2><div class="tips">'+tips.map(function(t){return'<div class="tip">'+t[0]+'<div style="font-weight:400;margin-top:8px;font-size:13px">'+t[1]+'</div></div>'}).join("")+'</div>'+nzCard();
+}
+function tick(){
+  if(tab!=="home"||!$("tm"))return;
+  nzUI();
+  var a=active(),now=Date.now(),le=lastEnd(),R=rec(),ms=a?now-a.s:(le?now-le:0);
+  var s=Math.floor(ms/1000);
+  $("tm").innerHTML='<div>'+two(Math.floor(s/3600))+'<small>часы</small></div><div>:</div><div>'+two(Math.floor(s%3600/60))+'<small>минуты</small></div><div>:</div><div>'+two(s%60)+'<small>секунды</small></div>';
+  $("cur").textContent=a?"Сон. "+a.p:"Бодрствование";
+  $("rb").textContent=a?"■":"😴";$("rb").className="rb"+(a?"":" go");$("rc").textContent=a?"СТОП":"УСНУЛ";
+  var lo=R[5]*6e4,hi=R[6]*6e4,t;
+  if(a)t="😴 Ребёнок отдыхает и набирается сил";
+  else if(le===null)t="Нажмите «Уснул», когда малыш заснёт";
+  else if(ms<lo-6e4*10)t="Окно сна через "+dur2((lo-ms)/6e4);
+  else if(ms<lo)t="Скоро спать — готовьте малыша ко сну";
+  else if(ms<hi)t="🌙 Пора укладывать — сейчас лучшее время";
+  else t="⚠️ Малыш перегулял — укладывайте скорее";
+  $("hint").textContent=t;
+}
+function tgl(){
+  var a=active(),now=Date.now();
+  if(a)a.e=now;else D.ev.push({id:uid(),s:now,e:null,p:"Кроватка"});
+  save();render();
+}
+
+/* ---------- log ---------- */
+function vLog(){
+  var d0=day0(Date.now())-dayOff*864e5,d1=d0+864e5,now=Date.now(),R=rec(),a=active(),le=lastEnd();
+  var list=sorted().filter(function(x){return x.s<d1&&(x.e==null?now:x.e)>d0}).reverse();
+  var rows=list.map(function(x){
+    var on=x.e==null;
+    return'<div class="rw"><div>'+(x.s<d0?"← ":"")+hm(x.s)+' –<br>'+(on?"– –:– –":hm(x.e))+'</div><div><b>'+(on?"":dur(x.e-x.s))+'</b></div><div>Сон.<br>'+x.p+'</div><div>'+(on?'<button class="stp" onclick="tgl()">■</button>':'<a class="e" onclick="mEv(\''+x.id+'\')">✎</a>')+'</div></div>';
+  }).join("");
+  return'<h2>Режим дня</h2><div class="g2"><div class="c"><div class="mu">Рекомендовано бодрствовать</div><b>'+dur2(R[5])+' – '+dur2(R[6])+'</b></div><div class="c"><div class="mu">Фактически сейчас</div><b>'+(a||le===null?"—":dur(now-le))+'</b></div></div>'+
+  '<div class="nv"><button onclick="dayOff++;render()">‹</button><h2>'+dayName(d0,dayOff)+(dayOff>1?"":", "+dmy(d0))+'</h2><button onclick="dayOff=Math.max(0,dayOff-1);render()">›</button></div>'+
+  '<div style="text-align:right"><a class="lk" onclick="mEv(null)">Добавить активность</a></div>'+
+  '<div class="c">'+(rows||'<div class="mu">В этот день записей нет</div>')+'</div>';
+}
+var PL=["Кроватка","На руках","Коляска","Другое"];
+function mEv(id){
+  var x=null;if(id)D.ev.forEach(function(y){if(y.id===id)x=y});
+  var now=Date.now(),s=x?x.s:now-36e5,e=x?x.e:now;
+  modal('<h3>'+(x?"Изменить сон":"Добавить сон")+'</h3><label>Уснул</label><input type="datetime-local" id="es" value="'+li(s)+'"><label>Проснулся (пусто — ещё спит)</label><input type="datetime-local" id="ee" value="'+(e==null?"":li(e))+'"><label>Где спал</label><select id="ep">'+PL.map(function(p){return'<option'+((x&&x.p===p)?" selected":"")+'>'+p+'</option>'}).join("")+'</select><button class="b" onclick="sEv('+(id?"'"+id+"'":"null")+')">Сохранить</button>'+(x?'<button class="b d" onclick="dEv(\''+id+'\')">Удалить</button>':'')+'<button class="b s" onclick="closeM()">Отмена</button>');
+}
+function sEv(id){
+  var s=$("es").value?new Date($("es").value).getTime():null,e=$("ee").value?new Date($("ee").value).getTime():null;
+  if(!s){alert("Укажите время, когда уснул");return}
+  if(e!=null&&e<=s){alert("Время пробуждения должно быть позже начала сна");return}
+  var a=active();if(e==null&&a&&a.id!==id){alert("Уже есть незавершённый сон — сначала завершите его");return}
+  var p=$("ep").value;
+  if(id){D.ev.forEach(function(y){if(y.id===id){y.s=s;y.e=e;y.p=p}})}else D.ev.push({id:uid(),s:s,e:e,p:p});
+  save();closeM();render();
+}
+function dEv(id){if(!confirm("Удалить запись?"))return;D.ev=D.ev.filter(function(y){return y.id!==id});save();closeM();render()}
+
+/* ---------- norms ---------- */
+function vNorm(){
+  var R=rec(),t0=day0(Date.now()),y=ds(t0-864e5);
+  return'<div class="nv"><h2>Режим сна</h2></div><div class="mu">Общие рекомендации для возраста</div>'+
+  '<div class="c"><table class="tb"><tr><th>Вчера</th><th>Всего</th><th>Днём</th><th>Ночью</th><th>Дн. снов</th></tr>'+
+  '<tr><td class="mu">Реком-но</td><td>'+rg(R[1])+'</td><td>'+rg(R[2])+'</td><td>'+rg(R[3])+'</td><td>'+R[4][0]+'–'+R[4][1]+'</td></tr>'+
+  '<tr><td class="mu">Факт-ки</td><td><b>'+dur(y.sl)+'</b></td><td><b>'+dur(y.dy)+'</b></td><td><b>'+dur(y.ni)+'</b></td><td><b>'+y.nap+'</b></td></tr></table></div>'+
+  '<h2>Расписание снов сегодня</h2><div class="c">'+tlHtml(t0)+'<div class="mu" style="margin-top:8px">Фиолетовый — сон, зелёный — бодрствование, чёрная линия — сейчас</div></div>';
+}
+
+/* ---------- stats ---------- */
+function vStat(){
+  var t0=day0(Date.now()),all=sorted().filter(function(x){return x.e!=null}),W=[],NP=[],NS=[],NE=[],ni=[],nis=[],nie=[],dsum=0,tot=0,days=0;
+  function pu(a,i,v){(a[i]=a[i]||[]).push(v)}
+  function av(a){return a.reduce(function(p,c){return p+c},0)/a.length}
+  function mn(t){return(t-day0(t))/6e4}
+  for(var k=1;k<=10;k++){
+    var d0=t0-k*864e5,d1=d0+864e5,idx=0,has=false,dd=0;
+    all.forEach(function(x,i){
+      if(x.s<d0||x.s>=d1)return;has=true;
+      if(isNight(x.s)){var m=mn(x.s);ni.push(x.e-x.s);nis.push(m<720?m+1440:m);nie.push(((x.e-d0)/6e4)%1440)}
+      else{idx++;dd+=x.e-x.s;pu(NP,idx,x.e-x.s);pu(NS,idx,mn(x.s));pu(NE,idx,mn(x.e));
+        var p=all[i-1];if(p){var g=x.s-p.e;if(g>0&&g<10*36e5)pu(W,idx,g)}}
+    });
+    if(has){days++;dsum+=dd;tot+=ds(d0).sl}
+  }
+  if(!days)return'<h2>Итоги</h2><div class="c mu">Пока мало данных. Записывайте сон несколько дней — здесь появятся средние значения за последние 10 дней.</div>';
+  function fm(m){m=Math.round(m)%1440;return two(Math.floor(m/60))+":"+two(m%60)}
+  var h='<div class="mu" style="margin-top:12px">На основе данных за последние 10 дней (дней с записями: '+days+')</div><h2>Время бодрствования</h2><div class="c">',i;
+  for(i=1;i<W.length;i++)if(W[i]){h+='<div class="ln"><span>'+i+' ВБ</span><span>'+dur(av(W[i]))+'</span></div>'}
+  h+='<div class="ln b" style="border-top:1px dashed var(--ln);margin-top:6px;padding-top:8px"><span>Всего бодрствования за сутки</span><span>'+dur(864e5-tot/days)+'</span></div></div>';
+  h+='<h2>Время сна</h2><div class="c"><div class="ln"><span>Дневной сон</span><span>'+dur(dsum/days)+'</span></div>';
+  for(i=1;i<NP.length;i++)if(NP[i])h+='<div class="ln mu"><span>'+i+' ДС</span><span>'+dur(av(NP[i]))+'</span></div>';
+  h+='<div class="ln"><span>Ночной сон</span><span>'+(ni.length?dur(av(ni)):"—")+'</span></div><div class="ln b" style="border-top:1px dashed var(--ln);margin-top:6px;padding-top:8px"><span>Общее время сна</span><span>'+dur(tot/days)+'</span></div></div>';
+  h+='<h2>Примерный ритм сна</h2><div class="c">';
+  if(nie.length)h+='<div class="ln"><span>Подъём</span><span>'+fm(av(nie))+'</span></div>';
+  for(i=1;i<NS.length;i++)if(NS[i])h+='<div class="ln"><span>'+i+' сон</span><span>'+fm(av(NS[i]))+' – '+fm(av(NE[i]))+' · <b>'+dur(av(NP[i]))+'</b></span></div>';
+  if(nis.length)h+='<div class="ln"><span>Ночной сон</span><span>'+fm(av(nis))+' – '+fm(av(nie))+'</span></div>';
+  return h+'</div>';
+}
+
+/* ---------- calendar ---------- */
+function vCal(){
+  var t0=day0(Date.now()),h='<div class="mu" style="margin-top:12px">Изменения в режиме дня. Нажмите на день, чтобы открыть журнал.</div>',fs=null;
+  D.ev.forEach(function(x){if(fs===null||x.s<fs)fs=x.s});
+  if(fs===null)return h+'<div class="c mu">Пока нет записей сна. Дни появятся после первой записи.</div>';
+  var n=Math.min(60,Math.round((t0-day0(fs))/864e5)+1);
+  for(var k=0;k<n;k++){
+    var d0=t0-k*864e5,s=ds(d0);
+    h+='<div class="c cd" onclick="dayOff='+k+';go(\'log\')"><div class="t">'+(k===0?"Сегодня, ":k===1?"Вчера, ":k===2?"Позавчера, ":"")+dmy(d0)+'</div><div class="day"><span>Бодрствование <b>'+dur(s.aw)+'</b></span><span>Сон <b>'+dur(s.sl)+'</b></span></div></div>';
+  }
+  return h;
+}
+
+/* ---------- pumping ---------- */
+function normPm(){D.pm.forEach(function(x){if(x.l==null&&x.r==null){x.l=x.sd==="R"?0:(x.ml||0);x.r=x.sd==="R"?(x.ml||0):0}x.l=x.l||0;x.r=x.r||0})}
+function pmDay(a){var b=a+864e5,L=0,R=0,c=0;D.pm.forEach(function(x){if(x.t>=a&&x.t<b){c++;L+=x.l;R+=x.r}});return{L:L,R:R,c:c,t:L+R}}
+function vPump(){
+  var t0=day0(Date.now()),d0=t0-pOff*864e5,d1=d0+864e5,list=[],days=[],mx=1,i;
+  D.pm.forEach(function(x){if(x.t>=d0&&x.t<d1)list.push(x)});
+  list.sort(function(a,b){return b.t-a.t});
+  var s=pmDay(d0);
+  for(i=6;i>=0;i--){var a=t0-i*864e5,q=pmDay(a);days.push([a,q.t]);if(q.t>mx)mx=q.t}
+  var WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+  var rows=list.map(function(x){return'<div class="pr"><div class="ph"><b>'+hm(x.t)+'</b><a class="e lk" onclick="mPm(\''+x.id+'\')">✎ изменить</a></div><div class="g3"><div><span class="mu">Левая</span><b style="color:var(--rd)">'+x.l+' мл</b></div><div><span class="mu">Правая</span><b style="color:#4a90e2">'+x.r+' мл</b></div><div><span class="mu">Вместе</span><b>'+(x.l+x.r)+' мл</b></div></div></div>'}).join("");
+  return'<h2>Сцеживание</h2>'+
+  '<div class="c"><label style="margin-top:0">Время</label><input type="datetime-local" id="pt" value="'+li(pOff===0?Date.now():d0+12*36e5)+'"><div class="r2"><div style="flex:1"><label>Левая грудь, мл</label><input type="number" id="pl" inputmode="numeric" placeholder="0"></div><div style="flex:1"><label>Правая грудь, мл</label><input type="number" id="pq" inputmode="numeric" placeholder="0"></div></div><button class="b" onclick="addP()">Добавить</button></div>'+
+  '<div class="nv"><button onclick="pOff++;render()">‹</button><h2>'+dayName(d0,pOff)+'</h2><button onclick="pOff=Math.max(0,pOff-1);render()">›</button></div>'+
+  '<div class="c"><div class="g2" style="gap:14px"><div><div class="mu">Левая грудь</div><div class="big" style="color:var(--rd)">'+s.L+' мл</div></div><div><div class="mu">Правая грудь</div><div class="big" style="color:#4a90e2">'+s.R+' мл</div></div><div><div class="mu">Сцеживаний</div><div class="big">'+s.c+'</div></div><div><div class="mu">В среднем за раз</div><div class="big">'+(s.c?Math.round(s.t/s.c):0)+' мл</div></div></div><div class="mu" style="margin-top:10px">Общий объём за сутки: <b style="color:var(--tx)">'+s.t+' мл</b></div></div>'+
+  '<div class="c">'+(rows||'<div class="mu">В этот день записей нет</div>')+'</div>'+
+  '<h2>За неделю</h2><div class="c"><div class="wk">'+days.map(function(d){return'<div>'+(d[1]?d[1]:"")+'<i style="height:'+Math.round(d[1]/mx*80)+'px"></i>'+WD[new Date(d[0]).getDay()]+'</div>'}).join("")+'</div></div>'+pumpDays(t0);
+}
+function pumpDays(t0){
+  var fs=null;D.pm.forEach(function(x){if(fs===null||x.t<fs)fs=x.t});
+  if(fs===null)return"";
+  var n=Math.min(60,Math.round((t0-day0(fs))/864e5)+1),h='<h2>По дням</h2><div class="mu" style="margin-bottom:8px">Сутки с 00:00 до 00:00. Нажмите на день, чтобы открыть записи.</div>';
+  for(var k=0;k<n;k++){
+    var a=t0-k*864e5,q=pmDay(a);
+    h+='<div class="c cd" onclick="pOff='+k+';render();window.scrollTo(0,0)"><div class="t">'+dayName(a,k)+(k<2?", "+dmy(a):"")+'</div><div class="day"><span>Всего за сутки <b>'+q.t+' мл</b></span><span>Сцеживаний <b>'+q.c+'</b></span></div><div class="day" style="margin-top:4px"><span>Левая <b>'+q.L+' мл</b></span><span>Правая <b>'+q.R+' мл</b></span></div></div>';
+  }
+  return h;
+}
+function addP(){
+  var t=$("pt").value?new Date($("pt").value).getTime():null,l=parseInt($("pl").value,10)||0,r=parseInt($("pq").value,10)||0;
+  if(!t||l+r<=0){alert("Укажите время и объём хотя бы для одной груди");return}
+  D.pm.push({id:uid(),t:t,l:l,r:r});save();render();
+}
+function mPm(id){
+  var x=null;D.pm.forEach(function(y){if(y.id===id)x=y});if(!x)return;
+  modal('<h3>Изменить сцеживание</h3><label>Время</label><input type="datetime-local" id="qt" value="'+li(x.t)+'"><div class="r2"><div style="flex:1"><label>Левая, мл</label><input type="number" id="ql" inputmode="numeric" value="'+x.l+'"></div><div style="flex:1"><label>Правая, мл</label><input type="number" id="qr" inputmode="numeric" value="'+x.r+'"></div></div><button class="b" onclick="sPm(\''+id+'\')">Сохранить</button><button class="b d" onclick="dPm(\''+id+'\')">Удалить</button><button class="b s" onclick="closeM()">Отмена</button>');
+}
+function sPm(id){
+  var t=$("qt").value?new Date($("qt").value).getTime():null,l=parseInt($("ql").value,10)||0,r=parseInt($("qr").value,10)||0;
+  if(!t||l+r<=0){alert("Укажите время и объём");return}
+  D.pm.forEach(function(y){if(y.id===id){y.t=t;y.l=l;y.r=r}});save();closeM();render();
+}
+function dPm(id){if(!confirm("Удалить запись?"))return;D.pm=D.pm.filter(function(y){return y.id!==id});save();closeM();render()}
+
+/* ---------- settings ---------- */
+function modal(h){$("md").innerHTML=h;$("ov").hidden=false}
+function closeM(){$("ov").hidden=true}
+$("ov").onclick=function(e){if(e.target===this)closeM()};
+function mSet(){
+  var bd=D.birth?li(D.birth).slice(0,10):"";
+  modal('<h3>Профиль и настройки</h3><div class="av" style="width:90px;height:90px;margin:0 auto 8px;border-radius:50%;font-size:44px" id="pav">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div>'+
+  '<input type="file" id="pf" accept="image/*" hidden><button class="b s" style="margin-top:0" onclick="$(\'pf\').click()">📷 Загрузить фото</button>'+
+  '<label>Имя</label><input type="text" id="sn" maxlength="40" placeholder="Как зовут малыша">'+
+  '<label>Сколько малышу сейчас</label><div class="r2"><input type="text" id="sa" inputmode="decimal" placeholder="например, 1,5"><select id="su" style="max-width:100px"><option value="m">мес.</option><option value="w">нед.</option><option value="y">лет</option></select></div>'+
+  '<label>Или дата рождения</label><input type="date" id="sb" value="'+bd+'">'+
+  '<label style="display:flex;gap:10px;align-items:center;color:var(--tx)"><input type="checkbox" id="sno" style="width:24px;height:24px"'+(D.notif?" checked":"")+'>Напоминать, когда пора спать (пока приложение открыто)</label>'+
+  '<button class="b" onclick="saveSet()">Сохранить</button>'+
+  '<label style="margin-top:18px">Резервная копия данных</label><textarea id="bk" placeholder="Здесь появится код данных или вставьте его для загрузки"></textarea>'+
+  '<button class="b s" onclick="shareBk()">📤 Сохранить копию (в Заметки, iCloud…)</button><div class="r2"><button class="b s" onclick="dlBk()">Скачать файл</button><button class="b s" onclick="$(\'bf\').click()">Из файла</button></div><div class="r2"><button class="b s" onclick="bkOut()">Скопировать код</button><button class="b s" onclick="bkIn()">Загрузить из кода</button></div><input type="file" id="bf" accept=".json,application/json" hidden><div class="mu" id="sp" style="margin-top:8px"></div>'+
+  '<button class="b s" onclick="closeM()">Закрыть</button>');
+  $("sn").value=D.name||"";
+  try{navigator.storage.persisted().then(function(p){$("sp").textContent=(p?"Постоянное хранилище включено ✓. ":"Телефон может очистить данные, если приложение долго не открывать. ")+(D.bk?"Последняя копия: "+dmy(D.bk)+".":"Копия ещё не делалась.")})}catch(e){$("sp").textContent=D.bk?"Последняя копия: "+dmy(D.bk)+".":"Копия ещё не делалась."}
+  $("bf").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$("bk").value=r.result;bkIn()};r.readAsText(f);this.value=""};
+  $("pf").onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();
+    r.onload=function(){var im=new Image();im.onload=function(){
+      var z=300,c=document.createElement("canvas");c.width=z;c.height=z;var s=Math.min(im.width,im.height);
+      c.getContext("2d").drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,z,z);
+      D.photo=c.toDataURL("image/jpeg",0.8);save();$("pav").innerHTML='<img src="'+D.photo+'" alt="">';head()};im.src=r.result};
+    r.readAsDataURL(f);this.value="";
+  };
+}
+function saveSet(){
+  D.name=$("sn").value.trim();
+  var raw=$("sa").value.replace(",",".").trim(),v=parseFloat(raw),bd=$("sb").value;
+  if(raw!==""&&!isNaN(v)&&v>=0){var u=$("su").value;D.birth=Date.now()-(u==="w"?v*7:u==="y"?v*365.25:v*30.4375)*864e5}
+  else if(bd)D.birth=new Date(bd+"T12:00:00").getTime();
+  D.notif=$("sno").checked;
+  try{if(D.notif&&"Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}
+  save();closeM();render();
+}
+function bkOut(){
+  var t=JSON.stringify(D);$("bk").value=t;
+  try{navigator.clipboard.writeText(t).then(function(){alert("Скопировано. Вставьте код в заметки или сообщение, чтобы сохранить копию.")},function(){$("bk").select()})}catch(e){$("bk").select()}
+}
+function bkIn(){
+  try{var o=JSON.parse($("bk").value);if(!o||!Array.isArray(o.ev))throw 0;
+    if(!confirm("Заменить текущие данные загруженными?"))return;
+    D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],notif:false},o);normPm();save();closeM();render();
+  }catch(e){alert("Не удалось прочитать код данных")}
+}
+
+/* ---------- white noise ---------- */
+var NZ={type:"white",on:false,vol:0.6,min:0,tm:null,urls:{},au:null,end:null};
+var NT=[["white","Белый"],["pink","Розовый"],["brown","Глубокий"]],NM=[0,15,30,60];
+function nzWav(type){
+  var sr=22050,n=sr*8,f=2000,m=n-f,x=new Float32Array(n),i,b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0,last=0,mx=0;
+  for(i=0;i<n;i++){
+    var w=Math.random()*2-1,y;
+    if(type==="white")y=w;
+    else if(type==="pink"){b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;y=b0+b1+b2+b3+b4+b5+b6+w*.5362;b6=w*.115926}
+    else{last=(last+.02*w)/1.02;y=last*3.5}
+    x[i]=y;
+  }
+  for(i=0;i<f;i++){var t=i/f;x[i]=x[i]*t+x[m+i]*(1-t)}
+  for(i=0;i<m;i++)if(Math.abs(x[i])>mx)mx=Math.abs(x[i]);
+  var buf=new ArrayBuffer(44+m*2),v=new DataView(buf);
+  function ws(o,str){for(var k=0;k<str.length;k++)v.setUint8(o+k,str.charCodeAt(k))}
+  ws(0,"RIFF");v.setUint32(4,36+m*2,true);ws(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ws(36,"data");v.setUint32(40,m*2,true);
+  for(i=0;i<m;i++)v.setInt16(44+i*2,Math.max(-1,Math.min(1,x[i]/mx*0.9))*32767,true);
+  return URL.createObjectURL(new Blob([buf],{type:"audio/wav"}));
+}
+function nzPlay(){
+  try{
+    if(!NZ.au){NZ.au=new Audio();NZ.au.loop=true;NZ.au.setAttribute("playsinline","")}
+    if(!NZ.urls[NZ.type])NZ.urls[NZ.type]=nzWav(NZ.type);
+    if(NZ.au._t!==NZ.type){NZ.au.src=NZ.urls[NZ.type];NZ.au._t=NZ.type}
+    NZ.au.volume=NZ.vol;
+    var p=NZ.au.play();if(p&&p.catch)p.catch(function(){NZ.on=false;nzUI()});
+    NZ.on=true;nzTimer();
+    if("mediaSession" in navigator){navigator.mediaSession.metadata=new MediaMetadata({title:"Белый шум",artist:"Сон малыша"});navigator.mediaSession.setActionHandler("pause",nzStop);navigator.mediaSession.setActionHandler("play",nzPlay)}
+  }catch(e){}
+  nzUI();
+}
+function nzStop(){try{if(NZ.au)NZ.au.pause()}catch(e){}NZ.on=false;clearTimeout(NZ.tm);NZ.end=null;nzUI()}
+function nzTog(){NZ.on?nzStop():nzPlay()}
+function nzType(t){NZ.type=t;if(NZ.on)nzPlay();else nzUI()}
+function nzVol(v){NZ.vol=v/100;try{if(NZ.au)NZ.au.volume=NZ.vol}catch(e){}}
+function nzMin(m){NZ.min=m;if(NZ.on)nzTimer();nzUI()}
+function nzTimer(){clearTimeout(NZ.tm);NZ.end=null;if(NZ.min>0){NZ.end=Date.now()+NZ.min*6e4;NZ.tm=setTimeout(nzStop,NZ.min*6e4)}}
+function nzCard(){
+  return'<h2>Белый шум</h2><div class="c"><div class="ch" id="nzt">'+NT.map(function(t){return'<button onclick="nzType(\''+t[0]+'\')">'+t[1]+'</button>'}).join("")+'</div>'+
+  '<button class="rb go" id="nzb" onclick="nzTog()">▶</button><div class="cap" id="nzs"></div>'+
+  '<label>Громкость</label><input type="range" id="nzv" min="0" max="100" value="'+Math.round(NZ.vol*100)+'" oninput="nzVol(this.value)"><div class="mu" style="margin-top:4px">На iPhone громкость регулируется кнопками телефона.</div>'+
+  '<label>Выключить через</label><div class="ch" id="nzm">'+NM.map(function(m){return'<button onclick="nzMin('+m+')">'+(m?m+" мин":"Не выключать")+'</button>'}).join("")+'</div></div>';
+}
+function nzUI(){
+  var b=$("nzb");if(!b||!$("nzt"))return;
+  try{
+    b.textContent=NZ.on?"⏸":"▶";b.className="rb"+(NZ.on?"":" go");
+    for(var i=0;i<NT.length;i++)$("nzt").children[i].className=NT[i][0]===NZ.type?"on":"";
+    for(i=0;i<NM.length;i++)$("nzm").children[i].className=NM[i]===NZ.min?"on":"";
+    var nm="";NT.forEach(function(t){if(t[0]===NZ.type)nm=t[1].toLowerCase()});
+    $("nzs").textContent=NZ.on?"Играет: "+nm+" шум"+(NZ.end?" · выключится в "+hm(NZ.end):""):"Нажмите ▶, чтобы включить";
+  }catch(e){}
+}
+
+/* ---------- backup ---------- */
+function bkBanner(){
+  if(!D.ev.length&&!D.pm.length)return D.name?"":'<div class="c mu">Если приложение уже использовалось раньше, откройте ⚙️ → «Резервная копия» и загрузите сохранённые данные.</div>';
+  var d=D.bk?Math.floor((Date.now()-D.bk)/864e5):null;
+  if(d!==null&&d<3)return"";
+  return'<div class="c" style="border:2px solid var(--wr)"><b>Сохраните копию данных</b><div class="mu" style="margin:4px 0 10px">'+(d===null?"Копия ещё не делалась.":"Последняя копия: "+d+" дн. назад.")+' Если телефон очистит память, записи можно будет восстановить.</div><button class="b" style="margin-top:0" onclick="shareBk()">Сохранить копию</button></div>';
+}
+function shareBk(){
+  var t=JSON.stringify(D);
+  function done(){D.bk=Date.now();save();render()}
+  if(navigator.share){navigator.share({title:"Сон малыша — копия данных",text:t}).then(done).catch(function(){})}
+  else{try{navigator.clipboard.writeText(t).then(function(){alert("Копия скопирована. Вставьте её в заметки или сообщение себе.");done()})}catch(e){alert("Не удалось сохранить копию. Откройте ⚙️ и нажмите «Скопировать».")}}
+}
+function dlBk(){
+  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:"application/json"}));a.download="sleep-backup.json";document.body.appendChild(a);a.click();a.remove();D.bk=Date.now();save()}catch(e){alert("Не удалось создать файл. Используйте «Сохранить копию».")}
+}
+
+/* ---------- reminders ---------- */
+function fire(t,b){
+  var el=$("ts");el.innerHTML=t+"<span>"+b+"</span>";el.hidden=false;
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification(t,{body:b,icon:"icon-192.png"})}catch(e){}
+}
+$("ts").onclick=function(){this.hidden=true};
+function checkAlerts(){
+  var le=lastEnd();if(!D.notif||active()||le===null)return;
+  var R=rec(),aw=Date.now()-le,lo=R[5]*6e4,hi=R[6]*6e4,wa=Math.max(0,lo-10*6e4);
+  if(!AL||AL.k!==le)AL={k:le,st:0};
+  var r=aw>=hi?3:aw>=lo?2:aw>=wa?1:0;
+  if(r>AL.st){AL.st=r;
+    if(r===1)fire("😴 Скоро спать","Готовьте малыша ко сну — окно сна через "+Math.max(1,Math.round((lo-aw)/6e4))+" мин");
+    else if(r===2)fire("🌙 Пора укладывать","Малыш не спит уже "+dur(aw));
+    else fire("⚠️ Малыш перегулял","Не спит "+dur(aw)+" — уложите как можно скорее");
+  }
+}
+
+/* ---------- start ---------- */
+load();normPm();render();
+setInterval(tick,1000);setInterval(checkAlerts,5000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden){render();checkAlerts()}});
+try{if("serviceWorker" in navigator&&location.protocol!=="file:")navigator.serviceWorker.register("sw.js")}catch(e){}
+</script>
+</body>
+</html>
