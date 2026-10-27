@@ -13,7 +13,8 @@
 <link rel="icon" href="icon-192.png">
 <style>
 :root{--bg:#fbf3ff;--cd:#fff;--tx:#34436b;--mu:#8b93ad;--ac:#7c5cf0;--ac2:#e9e2ff;--ok:#2fb98a;--wr:#f0a43c;--rd:#ef7b8c;--ln:#ece6f7;--sh:0 4px 16px rgba(80,60,140,.08)}
-@media(prefers-color-scheme:dark){:root{--bg:#14111f;--cd:#1f1b30;--tx:#efeaff;--mu:#9a94b8;--ac:#9a82ff;--ac2:#3a3066;--ln:#2d2848;--sh:none}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14111f;--cd:#1f1b30;--tx:#efeaff;--mu:#9a94b8;--ac:#9a82ff;--ac2:#3a3066;--ln:#2d2848;--sh:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14111f;--cd:#1f1b30;--tx:#efeaff;--mu:#9a94b8;--ac:#9a82ff;--ac2:#3a3066;--ln:#2d2848;--sh:none;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:env(safe-area-inset-top,0px) 0 calc(76px + env(safe-area-inset-bottom,0px));-webkit-tap-highlight-color:transparent}
@@ -93,7 +94,7 @@ textarea{height:90px}
 <div class="ov" id="ov" hidden><div class="md" id="md"></div></div>
 
 <script>
-var KEY="babysleep.v2",D={name:"",birth:null,photo:null,ev:[],pm:[],notif:false},tab="home",dayOff=0,pOff=0,pSide="L",warn="",AL=null;
+var KEY="babysleep.v2",D={name:"",birth:null,photo:null,ev:[],pm:[],fd:[],gr:[],notif:false},tab="home",dayOff=0,pOff=0,pSide="L",warn="",AL=null;
 function $(i){return document.getElementById(i)}
 function two(n){return(n<10?"0":"")+n}
 function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
@@ -167,16 +168,21 @@ function tlHtml(d0){
 }
 
 /* ---------- header & nav ---------- */
+function effTheme(){var t=document.documentElement.getAttribute("data-theme");if(t)return t;return(window.matchMedia&&window.matchMedia("(prefers-color-scheme:dark)").matches)?"dark":"light"}
+function setTheme(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("babysleep.theme",t)}catch(e){}var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="dark"?"#14111f":"#7c5cf0")}
+function togTheme(){setTheme(effTheme()==="dark"?"light":"dark");render()}
+try{var th0=localStorage.getItem("babysleep.theme");if(th0)setTheme(th0)}catch(e){}
 function head(){
-  $("hd").innerHTML='<div class="av">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div><div><h1></h1><div class="mu">'+ageTxt()+'</div></div>'+(D.sync&&D.sync.code?'<span style="margin-left:auto;font-size:18px" title="Синхронизация">'+(SY.st==="ok"?"☁️":"⏳")+'</span>':'')+'<button class="gear" style="margin-left:'+(D.sync&&D.sync.code?'6px':'auto')+'" onclick="mSet()" aria-label="Настройки">⚙️</button>';
+  var sy=D.sync&&D.sync.code;
+  $("hd").innerHTML='<div class="av">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div><div><h1></h1><div class="mu">'+ageTxt()+'</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:6px">'+(sy?'<span style="font-size:18px" title="Синхронизация">'+(SY.st==="ok"?"☁️":"⏳")+'</span>':'')+'<button class="gear" style="margin:0" onclick="togTheme()" aria-label="Тема">'+(effTheme()==="dark"?"☀️":"🌙")+'</button><button class="gear" style="margin:0" onclick="mSet()" aria-label="Настройки">⚙️</button></div>';
   $("hd").getElementsByTagName("h1")[0].textContent=D.name||"Ваш малыш";
 }
-var TABS=[["stat","📊","Итоги"],["norm","🌙","Режим"],["cal","📅","Дни"],["log","📋","Журнал"],["pump","🍼","Молоко"],["home","🏠","Главная"]];
+var TABS=[["grow","⚖️","Рост/вес"],["norm","🌙","Режим"],["cal","📅","Дни"],["log","📋","Журнал"],["pump","🍼","Молоко"],["home","🏠","Главная"]];
 function nav(){$("nv").innerHTML=TABS.map(function(t){return'<button class="'+(tab===t[0]?"on":"")+'" onclick="go(\''+t[0]+'\')">'+t[1]+'<small>'+t[2]+'</small></button>'}).join("")}
 function go(t){tab=t;render();window.scrollTo(0,0)}
 function render(){
   head();nav();banner();
-  var f={home:vHome,log:vLog,norm:vNorm,stat:vStat,cal:vCal,pump:vPump}[tab];
+  var f={home:vHome,log:vLog,norm:vNorm,grow:vGrow,cal:vCal,pump:vMilk}[tab];
   $("v").innerHTML=f();
   if(tab==="home")tick();
 }
@@ -246,7 +252,10 @@ function sEv(id){
 function dEv(id){if(!confirm("Удалить запись?"))return;D.ev=D.ev.filter(function(y){return y.id!==id});save();closeM();render()}
 
 /* ---------- norms ---------- */
-function vNorm(){
+var pSub="pump",nSub="norm",fOff=0;
+function subTabs(items,cur,setter){return'<div class="sd" style="margin-top:12px">'+items.map(function(i){return'<button class="'+(cur===i[0]?"on":"")+'" onclick="'+setter+'=\''+i[0]+'\';render()">'+i[1]+'</button>'}).join("")+'</div>'}
+function vNorm(){return subTabs([["norm","Режим"],["stat","Итоги"]],nSub,"nSub")+(nSub==="stat"?vStat():normBody())}
+function normBody(){
   var R=rec(),t0=day0(Date.now()),y=ds(t0-864e5);
   return'<div class="nv"><h2>Режим сна</h2></div><div class="mu">Общие рекомендации для возраста</div>'+
   '<div class="c"><table class="tb"><tr><th>Вчера</th><th>Всего</th><th>Днём</th><th>Ночью</th><th>Дн. снов</th></tr>'+
@@ -310,10 +319,11 @@ function vPump(){
   for(i=6;i>=0;i--){var a=t0-i*864e5,q=pmDay(a);days.push([a,q.t]);if(q.t>mx)mx=q.t}
   var WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
   var rows=list.map(function(x){return'<div class="pr"><div class="ph"><b>'+hm(x.t)+'</b><a class="e lk" onclick="mPm(\''+x.id+'\')">✎ изменить</a></div><div class="g3"><div><span class="mu">Левая</span><b style="color:var(--rd)">'+x.l+' мл</b></div><div><span class="mu">Правая</span><b style="color:#4a90e2">'+x.r+' мл</b></div><div><span class="mu">Вместе</span><b>'+(x.l+x.r)+' мл</b></div></div></div>'}).join("");
-  return'<h2>Сцеживание</h2>'+
+  return''+
   '<div class="c"><label style="margin-top:0">Время</label><input type="datetime-local" id="pt" value="'+li(pOff===0?Date.now():d0+12*36e5)+'"><div class="r2"><div style="flex:1"><label>Левая грудь, мл</label><input type="number" id="pl" inputmode="numeric" placeholder="0"></div><div style="flex:1"><label>Правая грудь, мл</label><input type="number" id="pq" inputmode="numeric" placeholder="0"></div></div><button class="b" onclick="addP()">Добавить</button></div>'+
   '<div class="nv"><button onclick="pOff++;render()">‹</button><h2>'+dayName(d0,pOff)+'</h2><button onclick="pOff=Math.max(0,pOff-1);render()">›</button></div>'+
   '<div class="c"><div class="g2" style="gap:14px"><div><div class="mu">Левая грудь</div><div class="big" style="color:var(--rd)">'+s.L+' мл</div></div><div><div class="mu">Правая грудь</div><div class="big" style="color:#4a90e2">'+s.R+' мл</div></div><div><div class="mu">Сцеживаний</div><div class="big">'+s.c+'</div></div><div><div class="mu">В среднем за раз</div><div class="big">'+(s.c?Math.round(s.t/s.c):0)+' мл</div></div></div><div class="mu" style="margin-top:10px">Общий объём за сутки: <b style="color:var(--tx)">'+s.t+' мл</b></div></div>'+
+  '<h2>График за день</h2><div class="c">'+dayBars(list,function(x){return x.t},function(x){return x.l+x.r},d0)+'</div>'+
   '<div class="c">'+(rows||'<div class="mu">В этот день записей нет</div>')+'</div>'+
   '<h2>За неделю</h2><div class="c"><div class="wk">'+days.map(function(d){return'<div>'+(d[1]?d[1]:"")+'<i style="height:'+Math.round(d[1]/mx*80)+'px"></i>'+WD[new Date(d[0]).getDay()]+'</div>'}).join("")+'</div></div>'+pumpDays(t0);
 }
@@ -343,6 +353,127 @@ function sPm(id){
 }
 function dPm(id){if(!confirm("Удалить запись?"))return;D.pm=D.pm.filter(function(y){return y.id!==id});save();closeM();render()}
 
+/* ---------- milk tab: feeding ---------- */
+function vMilk(){return subTabs([["pump","Сцеживание"],["feed","Кормление"]],pSub,"pSub")+(pSub==="feed"?vFeed():vPump())}
+function dayBars(list,gt,gv,d0){
+  var mx=1,h="";
+  list.forEach(function(x){if(gv(x)>mx)mx=gv(x)});
+  list.forEach(function(x){
+    var v=gv(x),l=(gt(x)-d0)/864e5*100,ht=Math.max(4,Math.round(v/mx*64));
+    h+='<div style="position:absolute;bottom:0;left:calc('+l+'% - 7px);width:14px"><span style="position:absolute;bottom:'+(ht+2)+'px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--mu);white-space:nowrap">'+v+'</span><i style="display:block;height:'+ht+'px;background:var(--ac);border-radius:4px 4px 0 0"></i></div>';
+  });
+  return'<div style="position:relative;height:96px;border-bottom:1px solid var(--ln);margin-top:6px">'+h+'</div><div class="ax"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>'+(list.length?"":'<div class="mu" style="margin-top:6px">Нет записей за этот день</div>');
+}
+function fdDay(a){var b=a+864e5,s=0,c=0;D.fd.forEach(function(x){if(x.t>=a&&x.t<b){s+=x.ml;c++}});return{t:s,c:c}}
+function vFeed(){
+  var t0=day0(Date.now()),d0=t0-fOff*864e5,d1=d0+864e5,list=[],days=[],mx=1,i;
+  D.fd.forEach(function(x){if(x.t>=d0&&x.t<d1)list.push(x)});
+  list.sort(function(a,b){return b.t-a.t});
+  var s=fdDay(d0);
+  for(i=6;i>=0;i--){var a=t0-i*864e5,q=fdDay(a);days.push([a,q.t]);if(q.t>mx)mx=q.t}
+  var WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+  var rows=list.map(function(x){return'<div class="rw" style="grid-template-columns:70px 1fr 90px"><div><b>'+hm(x.t)+'</b></div><div><b>'+x.ml+' мл</b></div><div><a class="e lk" onclick="mFd(\''+x.id+'\')">✎ изменить</a></div></div>'}).join("");
+  return'<h2>Кормление</h2>'+
+  '<div class="c"><label style="margin-top:0">Дата и время</label><input type="datetime-local" id="ft" value="'+li(fOff===0?Date.now():d0+12*36e5)+'"><label>Сколько съела, мл</label><input type="number" id="fv" inputmode="numeric" placeholder="0"><div class="ch">'+[30,60,90,120,150].map(function(v){return'<button onclick="$(\'fv\').value='+v+'">'+v+'</button>'}).join("")+'</div><button class="b" style="margin-top:4px" onclick="addF()">Добавить</button></div>'+
+  '<div class="nv"><button onclick="fOff++;render()">‹</button><h2>'+dayName(d0,fOff)+'</h2><button onclick="fOff=Math.max(0,fOff-1);render()">›</button></div>'+
+  '<div class="c"><div class="g2" style="gap:14px"><div><div class="mu">Всего за сутки</div><div class="big">'+s.t+' мл</div></div><div><div class="mu">Кормлений</div><div class="big">'+s.c+'</div></div></div><div class="mu" style="margin-top:10px">В среднем за раз: <b style="color:var(--tx)">'+(s.c?Math.round(s.t/s.c):0)+' мл</b></div></div>'+
+  '<h2>График за день</h2><div class="c">'+dayBars(list,function(x){return x.t},function(x){return x.ml},d0)+'</div>'+
+  '<div class="c">'+(rows||'<div class="mu">В этот день записей нет</div>')+'</div>'+
+  '<h2>За неделю</h2><div class="c"><div class="wk">'+days.map(function(d){return'<div>'+(d[1]?d[1]:"")+'<i style="height:'+Math.round(d[1]/mx*80)+'px"></i>'+WD[new Date(d[0]).getDay()]+'</div>'}).join("")+'</div></div>'+feedDays(t0);
+}
+function feedDays(t0){
+  var fs=null;D.fd.forEach(function(x){if(fs===null||x.t<fs)fs=x.t});
+  if(fs===null)return"";
+  var n=Math.min(60,Math.round((t0-day0(fs))/864e5)+1),h='<h2>По дням</h2><div class="mu" style="margin-bottom:8px">Сутки с 00:00 до 00:00. Нажмите на день, чтобы открыть записи.</div>';
+  for(var k=0;k<n;k++){
+    var a=t0-k*864e5,q=fdDay(a);
+    h+='<div class="c cd" onclick="fOff='+k+';render();window.scrollTo(0,0)"><div class="t">'+dayName(a,k)+(k<2?", "+dmy(a):"")+'</div><div class="day"><span>Всего за сутки <b>'+q.t+' мл</b></span><span>Кормлений <b>'+q.c+'</b></span></div></div>';
+  }
+  return h;
+}
+function addF(){
+  var t=$("ft").value?new Date($("ft").value).getTime():null,v=parseInt($("fv").value,10)||0;
+  if(!t||v<=0){alert("Укажите время и количество в мл");return}
+  D.fd.push({id:uid(),t:t,ml:v});save();render();
+}
+function mFd(id){
+  var x=null;D.fd.forEach(function(y){if(y.id===id)x=y});if(!x)return;
+  modal('<h3>Изменить кормление</h3><label>Дата и время</label><input type="datetime-local" id="qt" value="'+li(x.t)+'"><label>Сколько съела, мл</label><input type="number" id="qv" inputmode="numeric" value="'+x.ml+'"><button class="b" onclick="sFd(\''+id+'\')">Сохранить</button><button class="b d" onclick="dFd(\''+id+'\')">Удалить</button><button class="b s" onclick="closeM()">Отмена</button>');
+}
+function sFd(id){
+  var t=$("qt").value?new Date($("qt").value).getTime():null,v=parseInt($("qv").value,10)||0;
+  if(!t||v<=0){alert("Укажите время и количество");return}
+  D.fd.forEach(function(y){if(y.id===id){y.t=t;y.ml=v}});save();closeM();render();
+}
+function dFd(id){if(!confirm("Удалить запись?"))return;D.fd=D.fd.filter(function(y){return y.id!==id});save();closeM();render()}
+
+/* ---------- growth: weight & height ---------- */
+var WHO={f:{w:[3.2,4.2,5.1,5.8,6.4,6.9,7.3,7.6,7.9,8.2,8.5,8.7,8.9,9.6,10.2,10.9,11.5],h:[49.1,53.7,57.1,59.8,62.1,64.0,65.7,67.3,68.7,70.1,71.5,72.8,74.0,77.5,80.7,83.7,86.4]},m:{w:[3.3,4.5,5.6,6.4,7.0,7.5,7.9,8.3,8.6,8.9,9.2,9.4,9.6,10.3,10.9,11.5,12.2],h:[49.9,54.7,58.4,61.4,63.9,65.9,67.6,69.2,70.6,72.0,73.3,74.5,75.7,79.1,82.3,85.1,87.8]}},WM=[0,1,2,3,4,5,6,7,8,9,10,11,12,15,18,21,24];
+function who(k,m){
+  var a=WHO[D.sex==="m"?"m":"f"][k];
+  if(m<=0)return a[0];if(m>=24)return a[a.length-1];
+  for(var i=1;i<WM.length;i++)if(m<=WM[i]){var t=(m-WM[i-1])/(WM[i]-WM[i-1]);return a[i-1]+(a[i]-a[i-1])*t}
+  return a[a.length-1];
+}
+function amAt(t){return(t-D.birth)/(30.4375*864e5)}
+function fnum(v,d){return v.toFixed(d).replace(".",",")}
+function growChart(k,col){
+  var pts=D.gr.filter(function(x){return x[k]!=null}).sort(function(a,b){return a.t-b.t});
+  if(!pts.length)return'<div class="mu">Пока нет измерений</div>';
+  var now=Date.now(),t0=pts[0].t-12*864e5,t1=Math.max(pts[pts.length-1].t,now)+12*864e5,W=320,H=170,L=36,R=10,T=12,B=24,i,med=[],lo=1e9,hi=-1e9;
+  pts.forEach(function(p){if(p[k]<lo)lo=p[k];if(p[k]>hi)hi=p[k]});
+  if(D.birth){for(i=0;i<=20;i++){var tt=t0+(t1-t0)*i/20,v=who(k,amAt(tt));med.push([tt,v]);if(v<lo)lo=v;if(v>hi)hi=v}}
+  var pad=(hi-lo)*0.12||1;lo-=pad;hi+=pad;
+  function X(t){return L+(t-t0)/(t1-t0)*(W-L-R)}
+  function Y(v){return T+(1-(v-lo)/(hi-lo))*(H-T-B)}
+  var h='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img">';
+  for(i=0;i<=3;i++){var vv=lo+(hi-lo)*i/3,y=Y(vv);h+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--ln)"/><text x="'+(L-4)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" style="fill:var(--mu)">'+(k==="w"?vv.toFixed(1):Math.round(vv))+'</text>'}
+  [0,0.5,1].forEach(function(f){var t=t0+(t1-t0)*f,d=new Date(t);h+='<text x="'+X(t)+'" y="'+(H-6)+'" text-anchor="'+(f===0?"start":f===1?"end":"middle")+'" font-size="10" style="fill:var(--mu)">'+two(d.getDate())+"."+two(d.getMonth()+1)+'</text>'});
+  if(med.length)h+='<polyline fill="none" stroke-dasharray="4 4" stroke-width="2" style="stroke:var(--mu)" points="'+med.map(function(p){return X(p[0])+","+Y(p[1])}).join(" ")+'"/>';
+  h+='<polyline fill="none" stroke-width="3" stroke-linejoin="round" style="stroke:'+col+'" points="'+pts.map(function(p){return X(p.t)+","+Y(p[k])}).join(" ")+'"/>';
+  pts.forEach(function(p){h+='<circle cx="'+X(p.t)+'" cy="'+Y(p[k])+'" r="4" style="fill:'+col+'"/><text x="'+X(p.t)+'" y="'+(Y(p[k])-8)+'" text-anchor="middle" font-size="10" style="fill:var(--tx)">'+(k==="w"?String(p[k]).replace(".",","):p[k])+'</text>'});
+  return h+'</svg>'+(med.length?'<div class="mu">Пунктир — медиана ВОЗ для возраста (ориентир)</div>':'');
+}
+function vGrow(){
+  var arr=D.gr.slice().sort(function(a,b){return b.t-a.t}),last={w:null,h:null},prev={w:null,h:null};
+  arr.forEach(function(x){["w","h"].forEach(function(k){if(x[k]!=null){if(last[k]===null)last[k]=x;else if(prev[k]===null)prev[k]=x}})});
+  function card(k,name,unit,dg){
+    var a=last[k];if(!a)return'<div class="c"><div class="mu">'+name+'</div><div class="big">—</div></div>';
+    var d=prev[k]?a[k]-prev[k][k]:null,m=D.birth?who(k,amAt(a.t)):null;
+    return'<div class="c"><div class="mu">'+name+' · '+dmy(a.t)+'</div><div class="big">'+fnum(a[k],dg)+' <span style="font-size:15px">'+unit+'</span></div>'+(d!==null?'<div class="mu">'+(d>=0?"+":"−")+fnum(Math.abs(d),dg)+' '+unit+' с прошлого раза</div>':'')+(m!==null?'<div class="mu">Медиана ВОЗ: '+fnum(m,dg)+' '+unit+'</div>':'')+'</div>';
+  }
+  var rows=arr.map(function(x){return'<div class="rw" style="grid-template-columns:86px 1fr 1fr 40px"><div>'+dmy(x.t)+'</div><div>'+(x.w!=null?'<b>'+fnum(x.w,2)+' кг</b>':'—')+'</div><div>'+(x.h!=null?'<b>'+fnum(x.h,1)+' см</b>':'—')+'</div><div><a class="e" onclick="mGr(\''+x.id+'\')">✎</a></div></div>'}).join("");
+  return'<h2>Контроль роста и веса</h2>'+
+  '<div class="c"><label style="margin-top:0">Дата</label><input type="date" id="gd" value="'+li(Date.now()).slice(0,10)+'"><div class="r2"><div style="flex:1"><label>Вес, кг</label><input type="text" id="gw" inputmode="decimal" placeholder="например, 4,25"></div><div style="flex:1"><label>Рост, см</label><input type="text" id="gh" inputmode="decimal" placeholder="например, 56"></div></div><button class="b" onclick="addG()">Добавить</button></div>'+
+  '<div class="g2">'+card("w","Вес","кг",2)+card("h","Рост","см",1)+'</div>'+
+  '<h2>Вес</h2><div class="c">'+growChart("w","var(--ac)")+'</div>'+
+  '<h2>Рост</h2><div class="c">'+growChart("h","var(--ok)")+'</div>'+
+  '<h2>Измерения</h2><div class="c">'+(rows||'<div class="mu">Пока нет измерений</div>')+'</div>'+
+  '<div class="mu" style="margin-bottom:12px">Линия ВОЗ — средний ориентир (медиана) для '+(D.sex==="m"?"мальчиков":"девочек")+'. Нормой считается широкий коридор вокруг неё, оценку даёт педиатр. Пол меняется в ⚙️.</div>';
+}
+function grVals(a,b){
+  var w=parseFloat((a||"").replace(",",".")),h=parseFloat((b||"").replace(",","."));
+  if(isNaN(w))w=null;else if(w>30)w=w/1000;
+  if(isNaN(h))h=null;
+  if(w!=null)w=Math.round(w*1000)/1000;
+  return[w,h];
+}
+function addG(){
+  var d=$("gd").value,v=grVals($("gw").value,$("gh").value);
+  if(!d||(v[0]==null&&v[1]==null)){alert("Укажите дату и хотя бы вес или рост");return}
+  D.gr.push({id:uid(),t:new Date(d+"T12:00:00").getTime(),w:v[0],h:v[1]});save();render();
+}
+function mGr(id){
+  var x=null;D.gr.forEach(function(y){if(y.id===id)x=y});if(!x)return;
+  modal('<h3>Изменить измерение</h3><label>Дата</label><input type="date" id="qd" value="'+li(x.t).slice(0,10)+'"><div class="r2"><div style="flex:1"><label>Вес, кг</label><input type="text" id="qw" inputmode="decimal" value="'+(x.w!=null?String(x.w).replace(".",","):"")+'"></div><div style="flex:1"><label>Рост, см</label><input type="text" id="qh" inputmode="decimal" value="'+(x.h!=null?String(x.h).replace(".",","):"")+'"></div></div><button class="b" onclick="sGr(\''+id+'\')">Сохранить</button><button class="b d" onclick="dGr(\''+id+'\')">Удалить</button><button class="b s" onclick="closeM()">Отмена</button>');
+}
+function sGr(id){
+  var d=$("qd").value,v=grVals($("qw").value,$("qh").value);
+  if(!d||(v[0]==null&&v[1]==null)){alert("Укажите дату и хотя бы вес или рост");return}
+  D.gr.forEach(function(y){if(y.id===id){y.t=new Date(d+"T12:00:00").getTime();y.w=v[0];y.h=v[1]}});save();closeM();render();
+}
+function dGr(id){if(!confirm("Удалить измерение?"))return;D.gr=D.gr.filter(function(y){return y.id!==id});save();closeM();render()}
+
 /* ---------- settings ---------- */
 function modal(h){$("md").innerHTML=h;$("ov").hidden=false}
 function closeM(){$("ov").hidden=true}
@@ -351,7 +482,7 @@ function mSet(){
   var bd=D.birth?li(D.birth).slice(0,10):"";
   modal('<h3>Профиль и настройки</h3><div class="av" style="width:90px;height:90px;margin:0 auto 8px;border-radius:50%;font-size:44px" id="pav">'+(D.photo?'<img src="'+D.photo+'" alt="">':'👶')+'</div>'+
   '<input type="file" id="pf" accept="image/*" hidden><button class="b s" style="margin-top:0" onclick="$(\'pf\').click()">📷 Загрузить фото</button>'+
-  '<label>Имя</label><input type="text" id="sn" maxlength="40" placeholder="Как зовут малыша">'+
+  '<label>Имя</label><input type="text" id="sn" maxlength="40" placeholder="Как зовут малыша">'+'<label>Пол (для норм роста и веса)</label><select id="sx"><option value="f">Девочка</option><option value="m">Мальчик</option></select>'+
   '<label>Сколько малышу сейчас</label><div class="r2"><input type="text" id="sa" inputmode="decimal" placeholder="например, 1,5"><select id="su" style="max-width:100px"><option value="m">мес.</option><option value="w">нед.</option><option value="y">лет</option></select></div>'+
   '<label>Или дата рождения</label><input type="date" id="sb" value="'+bd+'">'+
   '<label style="display:flex;gap:10px;align-items:center;color:var(--tx)"><input type="checkbox" id="sno" style="width:24px;height:24px"'+(D.notif?" checked":"")+'>Напоминать, когда пора спать (пока приложение открыто)</label>'+
@@ -359,7 +490,7 @@ function mSet(){
   '<label style="margin-top:18px">Резервная копия данных</label><textarea id="bk" placeholder="Здесь появится код данных или вставьте его для загрузки"></textarea>'+
   '<button class="b s" onclick="shareBk()">📤 Сохранить копию (в Заметки, iCloud…)</button><div class="r2"><button class="b s" onclick="dlBk()">Скачать файл</button><button class="b s" onclick="$(\'bf\').click()">Из файла</button></div><div class="r2"><button class="b s" onclick="bkOut()">Скопировать код</button><button class="b s" onclick="bkIn()">Загрузить из кода</button></div><input type="file" id="bf" accept=".json,application/json" hidden><div class="mu" id="sp" style="margin-top:8px"></div>'+
   '<button class="b s" onclick="closeM()">Закрыть</button>');
-  $("sn").value=D.name||"";
+  $("sn").value=D.name||"";$("sx").value=D.sex||"f";
   try{navigator.storage.persisted().then(function(p){$("sp").textContent=(p?"Постоянное хранилище включено ✓. ":"Телефон может очистить данные, если приложение долго не открывать. ")+(D.bk?"Последняя копия: "+dmy(D.bk)+".":"Копия ещё не делалась.")})}catch(e){$("sp").textContent=D.bk?"Последняя копия: "+dmy(D.bk)+".":"Копия ещё не делалась."}
   $("bf").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$("bk").value=r.result;bkIn()};r.readAsText(f);this.value=""};
   $("pf").onchange=function(){
@@ -372,7 +503,7 @@ function mSet(){
   };
 }
 function saveSet(){
-  D.name=$("sn").value.trim();
+  D.name=$("sn").value.trim();D.sex=$("sx").value;
   var raw=$("sa").value.replace(",",".").trim(),v=parseFloat(raw),bd=$("sb").value;
   if(raw!==""&&!isNaN(v)&&v>=0){var u=$("su").value;D.birth=Date.now()-(u==="w"?v*7:u==="y"?v*365.25:v*30.4375)*864e5}
   else if(bd)D.birth=new Date(bd+"T12:00:00").getTime();
@@ -387,14 +518,15 @@ function bkOut(){
 function bkIn(){
   try{var o=JSON.parse($("bk").value);if(!o||!Array.isArray(o.ev))throw 0;
     if(!confirm("Заменить текущие данные загруженными?"))return;
-    var sy=D.sync;D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],notif:false},o);D.sync=sy;normPm();save();closeM();render();
+    var sy=D.sync;D=Object.assign({name:"",birth:null,photo:null,ev:[],pm:[],fd:[],gr:[],notif:false},o);D.sync=sy;normPm();save();closeM();render();
   }catch(e){alert("Не удалось прочитать код данных")}
 }
 
 /* ---------- cloud sync (Firebase Firestore) ---------- */
 var FBC={apiKey:"AIzaSyCqyNV-1YjpFsx_wDC9Tz5CkeTAQu98Rsk",authDomain:"sleep-5abf6.firebaseapp.com",projectId:"sleep-5abf6",storageBucket:"sleep-5abf6.firebasestorage.app",messagingSenderId:"98505357629",appId:"1:98505357629:web:a659341d3680c0ecd2ed54"};
-var SY={db:null,unsub:[],known:{ev:{},pm:{}},km:"",inflight:{},t:null,st:"off",ready:false};
-function rd(k,x){return k==="ev"?{s:x.s,e:x.e==null?null:x.e,p:x.p||"Кроватка"}:{t:x.t,l:x.l||0,r:x.r||0}}
+var SY={db:null,unsub:[],known:{ev:{},pm:{},fd:{},gr:{}},km:"",inflight:{},t:null,st:"off",ready:false};
+var KS=["ev","pm","fd","gr"];
+function rd(k,x){if(k==="ev")return{s:x.s,e:x.e==null?null:x.e,p:x.p||"Кроватка"};if(k==="pm")return{t:x.t,l:x.l||0,r:x.r||0};if(k==="fd")return{t:x.t,ml:x.ml||0};return{t:x.t,w:x.w==null?null:x.w,h:x.h==null?null:x.h}}
 function rj(k,x){return JSON.stringify(rd(k,x))}
 function fromDoc(k,d){var o=d.data(),r=rd(k,o);r.id=d.id;return r}
 function genCode(){var a="abcdefghjkmnpqrstuvwxyz23456789",b=new Uint8Array(16),s="",i;crypto.getRandomValues(b);for(i=0;i<16;i++){s+=a[b[i]%a.length];if(i%4===3&&i<15)s+="-"}return s}
@@ -411,7 +543,7 @@ function metaJ(){return JSON.stringify({name:D.name||"",birth:D.birth||null,phot
 function syncPush(){
   if(!SY.ready||!D.sync||!D.sync.code)return;
   var b=base();
-  ["ev","pm"].forEach(function(k){
+  KS.forEach(function(k){
     var seen={};
     D[k].forEach(function(x){seen[x.id]=1;var j=rj(k,x);if(SY.known[k][x.id]!==j&&SY.inflight[k+x.id]!==j){SY.inflight[k+x.id]=j;b.collection(k).doc(x.id).set(rd(k,x)).catch(function(){delete SY.inflight[k+x.id]})}});
     Object.keys(SY.known[k]).forEach(function(id){if(!seen[id]&&SY.inflight[k+id]!=="del"){SY.inflight[k+id]="del";b.collection(k).doc(id).delete().catch(function(){delete SY.inflight[k+id]})}});
@@ -434,15 +566,15 @@ function syncStart(){
   SY.st="conn";head();
   loadFb(function(ok){
     if(!ok){SY.st="off";head();return}
-    syncStop();SY.known={ev:{},pm:{}};SY.km="";SY.inflight={};
-    var first={ev:true,pm:true,m:true},b=base();
+    syncStop();SY.known={ev:{},pm:{},fd:{},gr:{}};SY.km="";SY.inflight={};
+    var first={m:true},b=base();KS.forEach(function(k){first[k]=true});
     function done(ch){
       persist();
-      if(!first.ev&&!first.pm&&!first.m&&!SY.ready){SY.ready=true;SY.st="ok";ch=true}
+      if(KS.every(function(k){return !first[k]})&&!first.m&&!SY.ready){SY.ready=true;SY.st="ok";ch=true}
       if(ch&&$("ov").hidden)render();else head();
       if(SY.ready)syncPush();
     }
-    ["ev","pm"].forEach(function(k){
+    KS.forEach(function(k){
       SY.unsub.push(b.collection(k).onSnapshot({includeMetadataChanges:true},function(snap){
         var ch=false;
         if(first[k]){
@@ -471,7 +603,7 @@ function syncCreate(){
     if(!ok){alert("Нет интернета или не удалось подключиться к серверу. Попробуйте позже.");if(bt)bt.textContent="☁️ Создать код семьи (с этого телефона)";return}
     var code=genCode(),root=SY.db.collection("families").doc(code),ops=[];
     ops.push([root.collection("meta").doc("profile"),{name:D.name||"",birth:D.birth||null,photo:D.photo||null}]);
-    ["ev","pm"].forEach(function(k){D[k].forEach(function(x){ops.push([root.collection(k).doc(x.id),rd(k,x)])})});
+    KS.forEach(function(k){D[k].forEach(function(x){ops.push([root.collection(k).doc(x.id),rd(k,x)])})});
     var ps=[],i;
     for(i=0;i<ops.length;i+=400){var bt2=SY.db.batch();ops.slice(i,i+400).forEach(function(o){bt2.set(o[0],o[1])});ps.push(bt2.commit())}
     Promise.all(ps).then(function(){D.sync={code:code};persist();syncStart();render();mSet()}).catch(function(e){alert("Не удалось загрузить данные: "+(e&&e.message||e));mSet()});
