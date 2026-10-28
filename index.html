@@ -81,6 +81,20 @@ textarea{height:90px}
 #wn{background:#ef7b8c;color:#fff;padding:10px 14px;font-size:13px;text-align:center}
 .toast{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:20;background:var(--ac);color:#fff;border-radius:16px;padding:14px 16px;font-weight:600}
 .toast span{display:block;font-weight:400;font-size:13px;margin-top:3px}
+.rt{width:100%;border-collapse:collapse;font-size:12px}
+.rt th{font-weight:600;color:var(--mu);text-align:left;padding:5px 3px;font-size:11px}
+.rt td{padding:6px 3px;border-top:1px solid var(--ln);vertical-align:top}
+.rs{margin:14px 0 4px;font-size:13px;font-weight:700;letter-spacing:.6px;color:var(--ac);text-transform:uppercase}
+.rl{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:14px}
+.rl span:first-child{color:var(--mu)}.rl b{text-align:right}
+@media print{
+:root{--bg:#fff;--cd:#fff;--tx:#000;--mu:#444;--ln:#ccc;--ac:#333;--sheet:#fff}
+body{background:#fff!important;padding:0!important}
+body>*:not(#ov){display:none!important}
+.ov{position:static!important;background:none!important;display:block!important}
+.md{max-height:none!important;border:0!important;box-shadow:none!important;background:#fff!important;border-radius:0!important}
+.noprint{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -297,7 +311,7 @@ function vStat(){
 
 /* ---------- calendar ---------- */
 function vCal(){
-  var t0=day0(Date.now()),h='<div class="mu" style="margin-top:12px">Изменения в режиме дня. Нажмите на день, чтобы открыть журнал.</div>',fs=null;
+  var t0=day0(Date.now()),h='<button class="b s" style="margin-top:12px" onclick="mRep()">📄 Отчёт для педиатра</button><div class="mu" style="margin-top:12px">Изменения в режиме дня. Нажмите на день, чтобы открыть журнал.</div>',fs=null;
   D.ev.forEach(function(x){if(fs===null||x.s<fs)fs=x.s});
   if(fs===null)return h+'<div class="c mu">Пока нет записей сна. Дни появятся после первой записи.</div>';
   var n=Math.min(60,Math.round((t0-day0(fs))/864e5)+1);
@@ -474,6 +488,85 @@ function sGr(id){
 }
 function dGr(id){if(!confirm("Удалить измерение?"))return;D.gr=D.gr.filter(function(y){return y.id!==id});save();closeM();render()}
 
+/* ---------- pediatrician report ---------- */
+var repDays=7,REPTXT="";
+function repBuild(n){
+  var t0=day0(Date.now()),days=[],i,all=sorted().filter(function(x){return x.e!=null}),from=t0-n*864e5;
+  for(i=n;i>=1;i--){var d0=t0-i*864e5;days.push({d0:d0,s:ds(d0),f:fdDay(d0),p:pmDay(d0)})}
+  function av(a){return a.length?a.reduce(function(p,c){return p+c},0)/a.length:null}
+  var sd=days.filter(function(d){return d.s.sl>0}),fd=days.filter(function(d){return d.f.c>0}),pd=days.filter(function(d){return d.p.c>0});
+  var night=0,gaps=[];
+  all.forEach(function(x,k){
+    if(x.s>=from&&x.s<t0){
+      if(isNight(x.s)&&x.e-x.s>night)night=x.e-x.s;
+      else if(!isNight(x.s)&&k>0){var g=x.s-all[k-1].e;if(g>0&&g<6*36e5)gaps.push(g)}
+    }
+  });
+  var fc=0,fm=0;fd.forEach(function(d){fc+=d.f.c;fm+=d.f.t});
+  var gr=D.gr.slice().sort(function(a,b){return b.t-a.t}),last={},prev={};
+  gr.forEach(function(x){["w","h"].forEach(function(k){if(x[k]!=null){if(!last[k])last[k]=x;else if(!prev[k])prev[k]=x}})});
+  return{n:n,days:days,from:from,to:t0-864e5,sd:sd.length,fd:fd.length,pd:pd.length,
+    sl:av(sd.map(function(d){return d.s.sl})),dy:av(sd.map(function(d){return d.s.dy})),ni:av(sd.map(function(d){return d.s.ni})),nap:av(sd.map(function(d){return d.s.nap})),
+    night:night,wake:av(gaps),
+    fAvg:av(fd.map(function(d){return d.f.t})),fCnt:av(fd.map(function(d){return d.f.c})),fPer:fc?fm/fc:null,
+    pL:av(pd.map(function(d){return d.p.L})),pR:av(pd.map(function(d){return d.p.R})),pT:av(pd.map(function(d){return d.p.t})),pC:av(pd.map(function(d){return d.p.c})),
+    last:last,prev:prev,gr:gr.slice(0,5)};
+}
+function repLines(r){
+  var R=rec(),m=D.birth?ageM():null,o=[],i;
+  function D2(ms){return dur2(ms/6e4)}
+  function gline(k,name,unit,dg){
+    var a=r.last[k];if(!a)return null;
+    var t=name+": "+fnum(a[k],dg)+" "+unit+" ("+dmy(a.t)+")";
+    if(r.prev[k]){var d=a[k]-r.prev[k][k];t+=", "+(d>=0?"+":"−")+fnum(Math.abs(d),dg)+" "+unit+" с "+dmy(r.prev[k].t)}
+    if(D.birth)t+="; медиана ВОЗ для возраста ≈ "+fnum(who(k,amAt(a.t)),dg)+" "+unit;
+    return t;
+  }
+  o.push(["h","Рост и вес"]);
+  var gw=gline("w","Вес","кг",2),gh=gline("h","Рост","см",1);
+  if(gw)o.push(["l","Вес",gw.replace("Вес: ","")]);if(gh)o.push(["l","Рост",gh.replace("Рост: ","")]);
+  if(!gw&&!gh)o.push(["l","Измерения","нет данных"]);
+  r.gr.forEach(function(x){o.push(["l",dmy(x.t),(x.w!=null?fnum(x.w,2)+" кг":"—")+(x.h!=null?", "+fnum(x.h,1)+" см":"")])});
+  o.push(["h","Сон (в среднем за сутки)"]);
+  if(r.sd){
+    o.push(["l","Всего за сутки",D2(r.sl)+" (норма для возраста "+rg(R[1])+")"]);
+    o.push(["l","Днём",D2(r.dy)+", снов "+r.nap.toFixed(1).replace(".",",")+" (норма "+R[4][0]+"–"+R[4][1]+")"]);
+    o.push(["l","Ночью",D2(r.ni)+(r.night?"; самый долгий ночной сон "+D2(r.night):"")]);
+    if(r.wake)o.push(["l","Бодрствование между снами","≈ "+D2(r.wake)+" (норма "+dur2(R[5])+" – "+dur2(R[6])+")"]);
+  }else o.push(["l","Данные","нет записей сна за период"]);
+  o.push(["h","Кормление (мл)"]);
+  if(r.fd)o.push(["l","В среднем за сутки",Math.round(r.fAvg)+" мл, кормлений "+r.fCnt.toFixed(1).replace(".",",")+", за раз ≈ "+Math.round(r.fPer)+" мл"]);
+  else o.push(["l","Данные","нет записей"]);
+  o.push(["h","Сцеживание (мл)"]);
+  if(r.pd)o.push(["l","В среднем за сутки",Math.round(r.pT)+" мл (левая "+Math.round(r.pL)+", правая "+Math.round(r.pR)+"), сцеживаний "+r.pC.toFixed(1).replace(".",",")]);
+  else o.push(["l","Данные","нет записей"]);
+  return o;
+}
+function repText(r,o){
+  var t="ОТЧЁТ ДЛЯ ПЕДИАТРА\n"+(D.name||"Малыш")+" · "+ageTxt()+" · "+(D.sex==="m"?"мальчик":"девочка")+"\nПериод: "+dmy(r.from)+" – "+dmy(r.to)+" ("+r.n+" дн.)\n";
+  o.forEach(function(x){if(x[0]==="h")t+="\n"+x[1].toUpperCase()+"\n";else t+=x[1]+": "+x[2]+"\n"});
+  t+="\nПО ДНЯМ (сон; корм., мл; сцеж., мл)\n";
+  r.days.slice().reverse().forEach(function(d){t+=two(new Date(d.d0).getDate())+"."+two(new Date(d.d0).getMonth()+1)+": сон "+dur2(d.s.sl/6e4)+" (дн. "+dur2(d.s.dy/6e4)+", ноч. "+dur2(d.s.ni/6e4)+"); корм. "+d.f.t+" ("+d.f.c+"); сцеж. "+d.p.t+" ("+d.p.c+")\n"});
+  return t+"\nСоставлено по записям родителей в приложении «Сон малыша». Не является медицинским заключением.";
+}
+function mRep(){
+  var r=repBuild(repDays),o=repLines(r);REPTXT=repText(r,o);
+  var h='<h3>Отчёт для педиатра</h3><div class="ch noprint">'+[7,14,30].map(function(n){return'<button class="'+(repDays===n?"on":"")+'" onclick="repDays='+n+';mRep()">'+n+' дней</button>'}).join("")+'</div>'+
+  '<div style="margin:8px 0"><b style="font-size:17px">'+(D.name||"Малыш")+'</b><div class="mu">'+ageTxt()+' · '+(D.sex==="m"?"мальчик":"девочка")+'<br>Период: '+dmy(r.from)+' – '+dmy(r.to)+' ('+r.n+' дн.)</div></div>';
+  o.forEach(function(x){h+=x[0]==="h"?'<div class="rs">'+x[1]+'</div>':'<div class="rl"><span>'+x[1]+'</span><b>'+x[2]+'</b></div>'});
+  h+='<div class="rs">По дням</div><table class="rt"><tr><th>Дата</th><th>Сон</th><th>Днём / ночью</th><th>Корм.</th><th>Сцеж.</th></tr>'+
+  r.days.slice().reverse().map(function(d){var dt=new Date(d.d0);return'<tr><td>'+two(dt.getDate())+'.'+two(dt.getMonth()+1)+'</td><td><b>'+dur2(d.s.sl/6e4)+'</b></td><td>'+dur2(d.s.dy/6e4)+' / '+dur2(d.s.ni/6e4)+'</td><td>'+d.f.t+' ('+d.f.c+')</td><td>'+d.p.t+' ('+d.p.c+')</td></tr>'}).join("")+'</table>'+
+  '<div class="mu" style="margin-top:12px;font-size:11px">Составлено по записям родителей в приложении «Сон малыша». Не является медицинским заключением.</div>'+
+  '<div class="noprint"><button class="b" onclick="repShare()">📤 Поделиться отчётом</button><div class="r2"><button class="b s" onclick="repCopy()">Скопировать текст</button><button class="b s" onclick="window.print()">Печать / PDF</button></div><button class="b s" onclick="closeM()">Закрыть</button></div>';
+  modal(h);
+}
+function repShare(){
+  if(navigator.share){navigator.share({title:"Отчёт для педиатра",text:REPTXT}).catch(function(){})}else repCopy();
+}
+function repCopy(){
+  try{navigator.clipboard.writeText(REPTXT).then(function(){alert("Отчёт скопирован. Вставьте его в сообщение или заметки.")})}catch(e){alert("Не удалось скопировать")}
+}
+
 /* ---------- settings ---------- */
 function modal(h){$("md").innerHTML=h;$("ov").hidden=false}
 function closeM(){$("ov").hidden=true}
@@ -486,7 +579,7 @@ function mSet(){
   '<label>Сколько малышу сейчас</label><div class="r2"><input type="text" id="sa" inputmode="decimal" placeholder="например, 1,5"><select id="su" style="max-width:100px"><option value="m">мес.</option><option value="w">нед.</option><option value="y">лет</option></select></div>'+
   '<label>Или дата рождения</label><input type="date" id="sb" value="'+bd+'">'+
   '<label style="display:flex;gap:10px;align-items:center;color:var(--tx)"><input type="checkbox" id="sno" style="width:24px;height:24px"'+(D.notif?" checked":"")+'>Напоминать, когда пора спать (пока приложение открыто)</label>'+
-  '<button class="b" onclick="saveSet()">Сохранить</button>'+syncUI()+
+  '<button class="b" onclick="saveSet()">Сохранить</button>'+'<button class="b s" onclick="closeM();mRep()">📄 Отчёт для педиатра</button>'+syncUI()+
   '<label style="margin-top:18px">Резервная копия данных</label><textarea id="bk" placeholder="Здесь появится код данных или вставьте его для загрузки"></textarea>'+
   '<button class="b s" onclick="shareBk()">📤 Сохранить копию (в Заметки, iCloud…)</button><div class="r2"><button class="b s" onclick="dlBk()">Скачать файл</button><button class="b s" onclick="$(\'bf\').click()">Из файла</button></div><div class="r2"><button class="b s" onclick="bkOut()">Скопировать код</button><button class="b s" onclick="bkIn()">Загрузить из кода</button></div><input type="file" id="bf" accept=".json,application/json" hidden><div class="mu" id="sp" style="margin-top:8px"></div>'+
   '<button class="b s" onclick="closeM()">Закрыть</button>');
